@@ -1,0 +1,54 @@
+# Python (Django) specific
+*.pyc
+*.pyo
+__pycache__
+db.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+*.db
+*.sqlite3
+
+# Directoare specifice pentru virtual environments
+venv/
+env/
+.venv/
+frontend/.env
+
+# Django specific media and static files
+/media/
+/static/
+
+# React specific
+node_modules/
+
+# Build output
+/build/
+
+# IDE specific files
+.idea/
+.vscode/
+
+# Mac specific files
+.DS_Store
+
+# Logs
+*.log
+
+# Environment files
+.env
+
+# Coverage reports
+coverage/
+*.cover
+
+# pytest specific
+*.pytest_cache/
+
+# PyCharm specific
+.idea/
+
+# Other
+import_cards.py
+clear_sets_and_cards.py
