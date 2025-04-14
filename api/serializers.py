@@ -50,6 +50,7 @@ class PokemonCardSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class UserCardSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
     card_id = serializers.CharField(source="card.card_id")
     name = serializers.CharField(source="card.name")
     image_url = serializers.URLField(source="card.image_url")
@@ -57,4 +58,23 @@ class UserCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserCard
-        fields = ["card_id", "name", "image_url", "quantity"]
+        fields = "__all__"
+
+
+class TradeCreateSerializer(serializers.ModelSerializer):
+    offered_cards = serializers.PrimaryKeyRelatedField(queryset=UserCard.objects.all(), many=True)
+    requested_cards = serializers.PrimaryKeyRelatedField(queryset=PokemonCard.objects.all(), many=True)
+
+    class Meta:
+        model = Trade
+        fields = ['id', 'offered_cards', 'requested_cards', 'created_at', 'is_active']
+
+
+class TradeSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    offered_cards = UserCardSerializer(many=True)
+    requested_cards = PokemonCardSerializer(many=True)
+
+    class Meta:
+        model = Trade
+        fields = ['id', 'user', 'offered_cards', 'requested_cards', 'created_at', 'is_active']

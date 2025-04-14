@@ -10,4 +10,6 @@ urlpatterns = [
     path("collection/add/", AddToCollectionView.as_view(), name="add-to-collection"),
     path("collection/remove/", RemoveFromCollectionView.as_view(), name="remove-from-collection"),
     path("cards/", CardSearchView.as_view(), name="card-search"),
+    path("trades/", TradeListCreateView.as_view(), name="trade-list-create"),
+    path("trades/<int:pk>/", TradeDetailView.as_view(), name="trade-detail"),
 ]

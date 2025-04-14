@@ -1,10 +1,10 @@
 from django.contrib.auth.models import User
 from rest_framework import generics, status
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import  AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import *
 from .serializers import *
@@ -96,5 +96,23 @@ class CardSearchView(ListAPIView):
     filter_backends = [SearchFilter]
     search_fields = ["name"]
     permission_classes = [AllowAny]
+
+
+class TradeListCreateView(ListCreateAPIView):
+    queryset = Trade.objects.all().order_by('-created_at')
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return TradeCreateSerializer
+        return TradeSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class TradeDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Trade.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = TradeSerializer
 
 

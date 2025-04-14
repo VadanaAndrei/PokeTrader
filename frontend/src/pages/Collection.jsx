@@ -54,7 +54,12 @@ function Collection() {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <h2>Your Collection</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+  <h2>Your Collection</h2>
+  <a href="/trade-form">
+    <button style={{ padding: "0.5rem 1rem", borderRadius: "8px" }}>Create Trade</button>
+  </a>
+</div>
       {cards.length === 0 ? (
         <p>You don't have any cards yet.</p>
       ) : (

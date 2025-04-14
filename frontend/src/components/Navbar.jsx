@@ -54,6 +54,7 @@ function Navbar() {
                 <Link to="/">Home</Link>
                 <Link to="/sets">Cards</Link>
                 <Link to="/collection">Collection</Link>
+                <Link to="/trades">Trades</Link>
                 {username && <Link to="/logout">Logout</Link>}
             </div>
         </div>

@@ -33,3 +33,14 @@ class UserCard(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.card.name} x{self.quantity}"
+
+
+class Trade(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trades")
+    offered_cards = models.ManyToManyField(UserCard, related_name="offered_in_trades")
+    requested_cards = models.ManyToManyField(PokemonCard, related_name="requested_in_trades")
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Trade by {self.user.username}"

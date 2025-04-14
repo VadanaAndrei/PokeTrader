@@ -11,6 +11,8 @@ import Collection from "./pages/Collection.jsx";
 import ProtectedRoute from "./components/ProtectedRoute"
 import SearchResults from "./pages/SearchResults.jsx";
 import "./styles/App.css"
+import Trades from "./pages/Trades.jsx";
+import TradeForm from "./components/TradeForm.jsx";
 
 function Logout() {
     useEffect(() => {
@@ -64,7 +66,30 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
-                <Route path="/search" element={<SearchResults />} />
+                <Route
+                    path="/search"
+                    element={
+                        <ProtectedRoute>
+                            <SearchResults/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/trades"
+                    element={
+                        <ProtectedRoute>
+                            <Trades/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/trade-form"
+                    element={
+                        <ProtectedRoute>
+                            <TradeForm/>
+                        </ProtectedRoute>
+                    }
+                />
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
         </BrowserRouter>
