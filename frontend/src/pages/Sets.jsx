@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api";
 import { Link, useNavigate } from "react-router-dom";
+import SearchBar from "../components/SearchBar.jsx";
 
 function Sets() {
   const [groupedSets, setGroupedSets] = useState({});
@@ -43,22 +44,7 @@ function Sets() {
   return (
     <div style={{ padding: "2rem", backgroundColor: "#f4f4f4", minHeight: "100vh" }}>
       <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>All Pokémon Card Sets</h1>
-
-      <form onSubmit={handleSubmit} style={{ textAlign: "center", marginBottom: "2rem" }}>
-        <input
-          type="text"
-          placeholder="Search cards by name..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            padding: "0.5rem 1rem",
-            width: "300px",
-            fontSize: "1rem",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-          }}
-        />
-      </form>
+      <SearchBar />
 
       {Object.entries(groupedSets).map(([series, sets]) => (
         <div key={series} style={{ marginBottom: "3rem" }}>
