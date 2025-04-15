@@ -1,92 +1,116 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import api from "../api";
+import {Link} from "react-router-dom";
 
 function Collection() {
-  const [cards, setCards] = useState([]);
+    const [cards, setCards] = useState([]);
 
-  useEffect(() => {
-    const fetchCollection = async () => {
-      try {
-        const res = await api.get("/api/collection/");
-        setCards(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+    useEffect(() => {
+        const fetchCollection = async () => {
+            try {
+                const res = await api.get("/api/collection/");
+                setCards(res.data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
 
-    fetchCollection();
-  }, []);
+        fetchCollection();
+    }, []);
 
-  const handleAdd = async (cardId) => {
-    try {
-      await api.post("/api/collection/add/", { card_id: cardId });
-      setCards((prev) =>
-        prev.map((card) =>
-          card.card_id === cardId
-            ? { ...card, quantity: card.quantity + 1 }
-            : card
-        )
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleRemove = async (cardId) => {
-    const card = cards.find((c) => c.card_id === cardId);
-    if (!card || card.quantity === 0) return;
-
-    try {
-      await api.post("/api/collection/remove/", { card_id: cardId });
-      setCards((prev) =>
-        prev
-          .map((card) =>
-            card.card_id === cardId
-              ? { ...card, quantity: card.quantity - 1 }
-              : card
-          )
-          .filter((card) => card.quantity > 0)
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  return (
-    <div style={{ padding: "2rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-  <h2>Your Collection</h2>
-  <a href="/trade-form">
-    <button style={{ padding: "0.5rem 1rem", borderRadius: "8px" }}>Create Trade</button>
-  </a>
-</div>
-      {cards.length === 0 ? (
-        <p>You don't have any cards yet.</p>
-      ) : (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-          {cards.map((card) => (
-            <div key={card.card_id} style={{ width: "200px", textAlign: "center" }}>
-              <img src={card.image_url} alt={card.name} style={{ width: "100%" }} />
-              <p>{card.name}</p>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  marginTop: "0.5rem",
-                }}
-              >
-                <button onClick={() => handleRemove(card.card_id)}>-</button>
-                <span>{card.quantity}</span>
-                <button onClick={() => handleAdd(card.card_id)}>+</button>
-              </div>
+    return (
+        <div style={{padding: "2rem", backgroundColor: "#f4f4f4", minHeight: "100vh"}}>
+            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                <h2>Your Collection</h2>
+                <Link to="/trade-form">
+                    <button style={{padding: "0.5rem 1rem", borderRadius: "8px"}}>Create Trade</button>
+                </Link>
             </div>
-          ))}
+
+            {cards.length === 0 ? (
+                <p>You don't have any cards yet.</p>
+            ) : (
+                <div style={{display: "flex", flexWrap: "wrap", gap: "1rem"}}>
+                    {cards.map((card) => {
+                        const upForTrade = card.quantity - card.available_quantity;
+                        const available = card.available_quantity;
+
+                        return (
+                            <div
+                                key={card.card_id}
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "row",
+                                    gap: "1rem",
+                                    alignItems: "flex-start",
+                                    width: "fit-content",
+                                }}
+                            >
+                                {upForTrade > 0 && (
+                                    <div style={{textAlign: "center", position: "relative", width: "200px"}}>
+                                        <div style={{filter: "blur(4px)"}}>
+                                            <img src={card.image_url} alt={card.name} style={{width: "100%"}}/>
+                                        </div>
+                                        <div
+                                            style={{
+                                                position: "absolute",
+                                                top: "10px",
+                                                right: "10px",
+                                                backgroundColor: "rgba(255, 165, 0, 0.9)",
+                                                color: "white",
+                                                padding: "0.2rem 0.5rem",
+                                                borderRadius: "8px",
+                                                fontSize: "0.8rem",
+                                                fontWeight: "bold",
+                                            }}
+                                        >
+                                            Up for trade ({upForTrade})
+                                        </div>
+                                        <p>{card.name}</p>
+                                        <p style={{fontSize: "0.9rem", color: "#777", marginTop: "-0.5rem"}}>
+                                            {card.set_name}
+                                        </p>
+                                        <p style={{fontSize: "0.85rem", color: "#333", margin: "0.2rem 0"}}>
+                                            Price: ${card.market_price?.toFixed(2) ?? "N/A"}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {available > 0 && (
+                                    <div style={{textAlign: "center", position: "relative", width: "200px"}}>
+                                        <img src={card.image_url} alt={card.name}
+                                             style={{width: "100%", borderRadius: "8px"}}/>
+                                        <div
+                                            style={{
+                                                position: "absolute",
+                                                top: "10px",
+                                                right: "10px",
+                                                backgroundColor: "rgba(34, 197, 94, 0.9)",
+                                                color: "white",
+                                                padding: "0.2rem 0.5rem",
+                                                borderRadius: "8px",
+                                                fontSize: "0.8rem",
+                                                fontWeight: "bold",
+                                            }}
+                                        >
+                                            Available ({available})
+                                        </div>
+                                        <p>{card.name}</p>
+                                        <p style={{fontSize: "0.9rem", color: "#777", marginTop: "-0.5rem"}}>
+                                            {card.set_name}
+                                        </p>
+                                        <p style={{fontSize: "0.85rem", color: "#333", margin: "0.2rem 0"}}>
+                                            Price: ${card.market_price?.toFixed(2) ?? "N/A"}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
-      )}
-    </div>
-  );
+    );
 }
 
 export default Collection;

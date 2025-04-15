@@ -103,12 +103,17 @@ class TradeListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
-        if self.request.method == 'POST':
+        if self.request.method == "POST":
             return TradeCreateSerializer
         return TradeSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        trade = serializer.save(user=request.user)
+
+        output_serializer = TradeSerializer(trade)
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
 class TradeDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Trade.objects.all()

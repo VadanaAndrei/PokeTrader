@@ -37,10 +37,24 @@ class UserCard(models.Model):
 
 class Trade(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trades")
-    offered_cards = models.ManyToManyField(UserCard, related_name="offered_in_trades")
-    requested_cards = models.ManyToManyField(PokemonCard, related_name="requested_in_trades")
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Trade by {self.user.username}"
+
+class TradeOfferedCard(models.Model):
+    trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name="offered_items")
+    user_card = models.ForeignKey(UserCard, on_delete=models.CASCADE, related_name="in_trades")
+    quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.quantity}x {self.user_card.card.name} from {self.user_card.user.username}"
+
+class TradeRequestedCard(models.Model):
+    trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name="requested_items")
+    card = models.ForeignKey(PokemonCard, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.quantity}x {self.card.name}"

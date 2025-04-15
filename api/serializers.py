@@ -55,26 +55,88 @@ class UserCardSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="card.name")
     image_url = serializers.URLField(source="card.image_url")
     quantity = serializers.IntegerField()
+    in_trade = serializers.SerializerMethodField()
+    set_name = serializers.CharField(source="card.set.name")
+    available_quantity = serializers.SerializerMethodField()
+    market_price = serializers.FloatField(source="card.market_price", read_only=True)
 
     class Meta:
         model = UserCard
         fields = "__all__"
 
+    def get_in_trade(self, obj):
+        return obj.in_trades.filter(trade__is_active=True).exists()
+
+    def get_available_quantity(self, obj):
+        blocked = obj.in_trades.filter(trade__is_active=True).aggregate(
+            total=models.Sum("quantity")
+        )["total"] or 0
+        return obj.quantity - blocked
+
+
+
+class TradeOfferedCardSerializer(serializers.ModelSerializer):
+    card_id = serializers.CharField(source="user_card.card.card_id", read_only=True)
+    name = serializers.CharField(source="user_card.card.name", read_only=True)
+    image_url = serializers.URLField(source="user_card.card.image_url", read_only=True)
+
+    class Meta:
+        model = TradeOfferedCard
+        fields = ["user_card", "quantity", "card_id", "name", "image_url"]
+
+    def get_in_trade(self, obj):
+        return obj.in_trades.filter(trade__is_active=True).exists()
+
+
+class TradeRequestedCardSerializer(serializers.ModelSerializer):
+    card_id = serializers.CharField(source="card.card_id", read_only=True)
+    name = serializers.CharField(source="card.name", read_only=True)
+    image_url = serializers.URLField(source="card.image_url", read_only=True)
+
+    class Meta:
+        model = TradeRequestedCard
+        fields = ["card", "quantity", "card_id", "name", "image_url"]
+
+
 
 class TradeCreateSerializer(serializers.ModelSerializer):
-    offered_cards = serializers.PrimaryKeyRelatedField(queryset=UserCard.objects.all(), many=True)
-    requested_cards = serializers.PrimaryKeyRelatedField(queryset=PokemonCard.objects.all(), many=True)
+    offered_items = serializers.ListField()
+    requested_items = serializers.ListField()
 
     class Meta:
         model = Trade
-        fields = ['id', 'offered_cards', 'requested_cards', 'created_at', 'is_active']
+        fields = ["offered_items", "requested_items"]
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        trade = Trade.objects.create(user=user)
+
+        for item in validated_data["offered_items"]:
+            TradeOfferedCard.objects.create(
+                trade=trade,
+                user_card=UserCard.objects.get(id=item["user_card"]),
+                quantity=item["quantity"]
+            )
+
+        for item in validated_data["requested_items"]:
+            TradeRequestedCard.objects.create(
+                trade=trade,
+                card=PokemonCard.objects.get(id=item["card"]),
+                quantity=item["quantity"]
+            )
+
+        return trade
+
 
 
 class TradeSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
-    offered_cards = UserCardSerializer(many=True)
-    requested_cards = PokemonCardSerializer(many=True)
+    user = serializers.CharField(source="user.username", read_only=True)
+    offered_items = TradeOfferedCardSerializer(many=True, read_only=True)
+    requested_items = TradeRequestedCardSerializer(many=True, read_only=True)
 
     class Meta:
         model = Trade
-        fields = ['id', 'user', 'offered_cards', 'requested_cards', 'created_at', 'is_active']
+        fields = ["id", "user", "created_at", "is_active", "offered_items", "requested_items"]
+
+
+

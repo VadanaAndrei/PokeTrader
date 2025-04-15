@@ -23,22 +23,44 @@ function Trades() {
         <p>No trades available yet.</p>
       ) : (
         trades.map((trade) => (
-          <div key={trade.id} style={{ border: "1px solid #ccc", padding: "1rem", marginBottom: "1rem" }}>
+          <div
+            key={trade.id}
+            style={{
+              border: "1px solid #ccc",
+              padding: "1rem",
+              marginBottom: "1.5rem",
+              borderRadius: "8px",
+            }}
+          >
             <p><strong>Posted by:</strong> {trade.user}</p>
-            <p><strong>Offers:</strong></p>
-            <ul>
-              {trade.offered_cards.map((card, i) => (
-                <li key={i}>
-                  {card.name} x{card.quantity}
-                </li>
-              ))}
-            </ul>
-            <p><strong>Wants:</strong></p>
-            <ul>
-              {trade.requested_cards.map((card, i) => (
-                <li key={i}>{card.name}</li>
-              ))}
-            </ul>
+
+            <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
+              <div>
+                <p><strong>Offers:</strong></p>
+                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                  {trade.offered_items.map((item, i) => (
+                    <div key={i} style={{ width: "120px", textAlign: "center" }}>
+                      <img src={item.image_url} alt={item.name} style={{ width: "100%" }} />
+                      <p>{item.name}</p>
+                      <p>x{item.quantity}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p><strong>Wants:</strong></p>
+                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                  {trade.requested_items.map((item, i) => (
+                    <div key={i} style={{ width: "120px", textAlign: "center" }}>
+                      <img src={item.image_url} alt={item.name} style={{ width: "100%" }} />
+                      <p>{item.name}</p>
+                      <p>x{item.quantity}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         ))
       )}
