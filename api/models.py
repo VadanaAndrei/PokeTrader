@@ -39,17 +39,26 @@ class Trade(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trades")
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    accepted_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
+                                    related_name="accepted_trades")
 
     def __str__(self):
         return f"Trade by {self.user.username}"
+
+
 
 class TradeOfferedCard(models.Model):
     trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name="offered_items")
     user_card = models.ForeignKey(UserCard, on_delete=models.CASCADE, related_name="in_trades")
     quantity = models.PositiveIntegerField()
 
+    name = models.CharField(max_length=255, null=True, blank=True)
+    image_url = models.URLField(null=True, blank=True)
+    market_price = models.FloatField(null=True, blank=True)
+
     def __str__(self):
         return f"{self.quantity}x {self.user_card.card.name} from {self.user_card.user.username}"
+
 
 class TradeRequestedCard(models.Model):
     trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name="requested_items")

@@ -1,7 +1,9 @@
 .navbar-wrapper {
   height: 60px;
   width: 100%;
-  position: relative;
+  position: fixed;
+  top: 0;
+  z-index: 999;
   overflow: hidden;
   background: linear-gradient(
     to right,

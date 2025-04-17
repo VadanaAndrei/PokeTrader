@@ -12,4 +12,7 @@ urlpatterns = [
     path("cards/", CardSearchView.as_view(), name="card-search"),
     path("trades/", TradeListCreateView.as_view(), name="trade-list-create"),
     path("trades/<int:pk>/", TradeDetailView.as_view(), name="trade-detail"),
+    path("trades/<int:trade_id>/accept/", AcceptTradeView.as_view(), name="accept-trade"),
+    path("trades/accepted/", AcceptedTradesView.as_view(), name="accepted-trades"),
+
 ]

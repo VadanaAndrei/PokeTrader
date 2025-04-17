@@ -13,6 +13,9 @@ import SearchResults from "./pages/SearchResults.jsx";
 import "./styles/App.css"
 import Trades from "./pages/Trades.jsx";
 import TradeForm from "./components/TradeForm.jsx";
+import TradeDetail from "./pages/TradeDetail.jsx";
+import PostedTrades from "./pages/PostedTrades.jsx";
+import AcceptedTrades from "./pages/AcceptedTrades.jsx";
 
 function Logout() {
     useEffect(() => {
@@ -87,6 +90,30 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <TradeForm/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/trades/:id"
+                    element={
+                        <ProtectedRoute>
+                            <TradeDetail/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/posted-trades"
+                    element={
+                        <ProtectedRoute>
+                            <PostedTrades/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/accepted-trades"
+                    element={
+                        <ProtectedRoute>
+                            <AcceptedTrades/>
                         </ProtectedRoute>
                     }
                 />

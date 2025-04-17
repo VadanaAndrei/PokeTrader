@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db import transaction
 from rest_framework import generics, status
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
@@ -9,7 +10,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import *
 from .serializers import *
 from django.db.models.functions import Cast
-from django.db.models import IntegerField
+from django.db.models import IntegerField, Sum, Prefetch
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -99,8 +100,10 @@ class CardSearchView(ListAPIView):
 
 
 class TradeListCreateView(ListCreateAPIView):
-    queryset = Trade.objects.all().order_by('-created_at')
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return Trade.objects.filter(is_active=True).order_by("-created_at")
 
     def get_serializer_class(self):
         if self.request.method == "POST":
@@ -119,5 +122,47 @@ class TradeDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Trade.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = TradeSerializer
+
+
+class AcceptTradeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, trade_id):
+        try:
+            trade = Trade.objects.get(id=trade_id, is_active=True)
+        except Trade.DoesNotExist:
+            return Response({"error": "Trade not found or already inactive."}, status=404)
+
+        with transaction.atomic():
+            for requested in trade.requested_items.all():
+                try:
+                    user_card = UserCard.objects.get(user=request.user, card=requested.card)
+                except UserCard.DoesNotExist:
+                    return Response({"error": f"You do not own {requested.card.name}"}, status=400)
+
+                blocked = TradeOfferedCard.objects.filter(
+                    user_card=user_card,
+                    trade__is_active=True
+                ).aggregate(total=Sum("quantity"))["total"] or 0
+
+                available_quantity = user_card.quantity - blocked
+
+                if available_quantity < requested.quantity:
+                    return Response({"error": f"Not enough of {requested.card.name}"}, status=400)
+
+            trade.is_active = False
+            trade.accepted_by = request.user
+            trade.save()
+
+        return Response({"message": "Trade accepted!"}, status=200)
+
+class AcceptedTradesView(ListAPIView):
+    serializer_class = TradeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Trade.objects.filter(
+            accepted_by=self.request.user
+        ).order_by("-created_at")
 
 

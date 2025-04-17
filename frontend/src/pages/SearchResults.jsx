@@ -107,8 +107,12 @@ function SearchResults() {
         >
           {results.map((card) => (
             <div key={card.card_id} style={{ width: "200px", textAlign: "center" }}>
-              <img src={card.image_url} alt={card.name} style={{ width: "100%" }} />
+              <img src={card.image_url} alt={card.name} style={{ width: "100%", borderRadius: "8px" }} />
               <p>{card.name}</p>
+              <p style={{ fontSize: "0.9rem", color: "#777", marginTop: "-0.5rem" }}>{card.set_name}, #{card.number}</p>
+              <p style={{ fontSize: "0.85rem", color: "#333", margin: "0.2rem 0" }}>
+                Price: ${card.market_price?.toFixed(2) ?? "N/A"}
+              </p>
               <div
                 style={{
                   display: "flex",

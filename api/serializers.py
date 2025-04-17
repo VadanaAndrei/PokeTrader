@@ -59,6 +59,7 @@ class UserCardSerializer(serializers.ModelSerializer):
     set_name = serializers.CharField(source="card.set.name")
     available_quantity = serializers.SerializerMethodField()
     market_price = serializers.FloatField(source="card.market_price", read_only=True)
+    number = serializers.CharField(source="card.number", read_only=True)
 
     class Meta:
         model = UserCard
@@ -76,26 +77,26 @@ class UserCardSerializer(serializers.ModelSerializer):
 
 
 class TradeOfferedCardSerializer(serializers.ModelSerializer):
-    card_id = serializers.CharField(source="user_card.card.card_id", read_only=True)
     name = serializers.CharField(source="user_card.card.name", read_only=True)
     image_url = serializers.URLField(source="user_card.card.image_url", read_only=True)
+    market_price = serializers.FloatField(source="user_card.card.market_price", read_only=True)
 
     class Meta:
         model = TradeOfferedCard
-        fields = ["user_card", "quantity", "card_id", "name", "image_url"]
+        fields = ["user_card", "quantity", "name", "image_url", "market_price"]
 
-    def get_in_trade(self, obj):
-        return obj.in_trades.filter(trade__is_active=True).exists()
+
 
 
 class TradeRequestedCardSerializer(serializers.ModelSerializer):
     card_id = serializers.CharField(source="card.card_id", read_only=True)
     name = serializers.CharField(source="card.name", read_only=True)
     image_url = serializers.URLField(source="card.image_url", read_only=True)
+    market_price = serializers.FloatField(source="card.market_price", read_only=True)
 
     class Meta:
         model = TradeRequestedCard
-        fields = ["card", "quantity", "card_id", "name", "image_url"]
+        fields = ["card", "quantity", "card_id", "name", "image_url", "market_price"]
 
 
 
@@ -112,10 +113,16 @@ class TradeCreateSerializer(serializers.ModelSerializer):
         trade = Trade.objects.create(user=user)
 
         for item in validated_data["offered_items"]:
+            user_card = UserCard.objects.get(id=item["user_card"])
+            card = user_card.card
+
             TradeOfferedCard.objects.create(
                 trade=trade,
-                user_card=UserCard.objects.get(id=item["user_card"]),
-                quantity=item["quantity"]
+                user_card=user_card,
+                quantity=item["quantity"],
+                name=card.name,
+                image_url=card.image_url,
+                market_price=card.market_price
             )
 
         for item in validated_data["requested_items"]:
@@ -137,6 +144,10 @@ class TradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trade
         fields = ["id", "user", "created_at", "is_active", "offered_items", "requested_items"]
+
+
+
+
 
 
 
