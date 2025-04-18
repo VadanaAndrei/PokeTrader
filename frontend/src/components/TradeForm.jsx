@@ -127,7 +127,8 @@ function TradeForm() {
                             style={{width: "100%", borderRadius: "8px"}}
                         />
                         <p style={{margin: "0.5rem 0 0.2rem"}}>{card.name}</p>
-                        <p style={{fontSize: "0.9rem", color: "#777", margin: "0"}}>{card.set_name}</p>
+                        <p style={{fontSize: "0.9rem", color: "#777", margin: "0"}}>{card.set_name}, #{card.number}</p>
+                        <p style={{fontSize: "0.85rem", color: "#444", margin: "0.2rem 0"}}>Price: ${card.market_price?.toFixed(2)}</p>
                         <p style={{fontSize: "0.85rem", margin: "0.3rem 0"}}>
                             Available: {card.available_quantity}
                         </p>
@@ -166,7 +167,8 @@ function TradeForm() {
                     >
                         <img src={card.image_url} alt={card.name} style={{width: "100%"}}/>
                         <p style={{margin: "0.3rem 0 0"}}>{card.name}</p>
-                        <p style={{fontSize: "0.8rem", color: "#777"}}>{card.set_name}</p>
+                        <p style={{fontSize: "0.8rem", color: "#777"}}>{card.set_name}, #{card.number}</p>
+                        <p style={{fontSize: "0.8rem", color: "#444"}}>Price: ${card.market_price?.toFixed(2)}</p>
                     </div>
                 ))}
             </div>
@@ -181,15 +183,14 @@ function TradeForm() {
                                 style={{
                                     width: "160px",
                                     textAlign: "center",
-                                    background: "#fff",
                                     padding: "0.5rem",
                                     borderRadius: "10px",
-                                    boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
                                 }}
                             >
                                 <img src={card.image_url} alt={card.name} style={{width: "100%"}}/>
                                 <p style={{margin: "0.3rem 0 0"}}>{card.name}</p>
-                                <p style={{fontSize: "0.8rem", color: "#777"}}>{card.set_name}</p>
+                                <p style={{fontSize: "0.8rem", color: "#777"}}>{card.set_name}, #{card.number}</p>
+                                <p style={{fontSize: "0.8rem", color: "#444"}}>Price: ${card.market_price?.toFixed(2)}</p>
                                 <div style={{display: "flex", justifyContent: "center", gap: "0.5rem"}}>
                                     <button onClick={() => updateRequestedQuantity(card.card_id, -1)}>-</button>
                                     <span>{card.quantity}</span>

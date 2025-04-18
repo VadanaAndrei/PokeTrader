@@ -14,5 +14,6 @@ urlpatterns = [
     path("trades/<int:pk>/", TradeDetailView.as_view(), name="trade-detail"),
     path("trades/<int:trade_id>/accept/", AcceptTradeView.as_view(), name="accept-trade"),
     path("trades/accepted/", AcceptedTradesView.as_view(), name="accepted-trades"),
+    path("trades/<int:trade_id>/messages/", MessageListCreateView.as_view(), name="trade-messages"),
 
 ]

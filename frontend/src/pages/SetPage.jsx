@@ -95,7 +95,7 @@ function SetPage() {
                 {cards.map((card) => (
                     <div key={card.card_id} style={{width: "200px", textAlign: "center"}}>
                         <img src={card.image_url} alt={card.name} style={{width: "100%"}}/>
-                        <p>{card.name}</p>
+                        <p>{card.name}, #{card.number}</p>
                         <p>
                             Price:{" "}
                             {card.market_price !== null

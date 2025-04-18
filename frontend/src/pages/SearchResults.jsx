@@ -31,7 +31,7 @@ function SearchResults() {
         });
         const mapping = {};
         res.data.forEach((item) => {
-          mapping[item.card_id] = item.quantity;
+          mapping[item.card_id] = item.available_quantity; // <-- modificat aici
         });
         setCollection(mapping);
       } catch (err) {

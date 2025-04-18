@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.db.models import Sum
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import *
@@ -69,10 +70,23 @@ class UserCardSerializer(serializers.ModelSerializer):
         return obj.in_trades.filter(trade__is_active=True).exists()
 
     def get_available_quantity(self, obj):
-        blocked = obj.in_trades.filter(trade__is_active=True).aggregate(
-            total=models.Sum("quantity")
+        blocked_active = obj.in_trades.filter(trade__is_active=True).aggregate(
+            total=Sum("quantity")
         )["total"] or 0
-        return obj.quantity - blocked
+
+        blocked_accepted_as_responder = TradeRequestedCard.objects.filter(
+            trade__accepted_by=obj.user,
+            trade__is_active=False,
+            card=obj.card
+        ).aggregate(total=Sum("quantity"))["total"] or 0
+
+        blocked_accepted_as_creator = TradeOfferedCard.objects.filter(
+            user_card=obj,
+            trade__is_active=False,
+            trade__accepted_by__isnull=False
+        ).aggregate(total=Sum("quantity"))["total"] or 0
+
+        return obj.quantity - blocked_active - blocked_accepted_as_responder - blocked_accepted_as_creator
 
 
 
@@ -138,12 +152,22 @@ class TradeCreateSerializer(serializers.ModelSerializer):
 
 class TradeSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
+    accepted_by = serializers.CharField(source="accepted_by.username", read_only=True)
     offered_items = TradeOfferedCardSerializer(many=True, read_only=True)
     requested_items = TradeRequestedCardSerializer(many=True, read_only=True)
 
     class Meta:
         model = Trade
-        fields = ["id", "user", "created_at", "is_active", "offered_items", "requested_items"]
+        fields = ["id", "user", "created_at", "is_active", "offered_items", "requested_items", "accepted_by"]
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source="sender.username", read_only=True)
+
+    class Meta:
+        model = Message
+        fields = ["id", "trade", "sender", "sender_username", "text", "timestamp"]
+        read_only_fields = ["id", "timestamp", "sender", "sender_username", "trade"]
 
 
 

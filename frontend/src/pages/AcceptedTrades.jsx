@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api";
 
 function AcceptedTrades() {
@@ -75,6 +76,12 @@ function AcceptedTrades() {
                   </p>
                 </div>
               </div>
+
+              <Link to={`/trades/${trade.id}/chat`}>
+                <button style={{ marginTop: "1rem", padding: "0.5rem 1rem", borderRadius: "6px" }}>
+                  Go to chat
+                </button>
+              </Link>
             </div>
           );
         })

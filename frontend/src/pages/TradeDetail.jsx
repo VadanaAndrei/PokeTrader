@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {useParams, useNavigate} from "react-router-dom";
+import {jwtDecode} from "jwt-decode";
 import api from "../api";
 
 function TradeDetail() {
@@ -7,9 +8,16 @@ function TradeDetail() {
     const [trade, setTrade] = useState(null);
     const [collection, setCollection] = useState({});
     const [error, setError] = useState("");
+    const [currentUser, setCurrentUser] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
+        const token = localStorage.getItem("access");
+        if (token) {
+            const decoded = jwtDecode(token);
+            setCurrentUser(decoded.username);
+        }
+
         const fetchData = async () => {
             try {
                 const [tradeRes, collectionRes] = await Promise.all([
@@ -44,6 +52,19 @@ function TradeDetail() {
         }
     };
 
+    const handleDelete = async () => {
+        if (window.confirm("Are you sure you want to delete this trade?")) {
+            try {
+                await api.delete(`/api/trades/${tradeId}/`);
+                alert("Trade deleted.");
+                navigate("/trades");
+            } catch (err) {
+                alert("Failed to delete trade");
+                console.error(err);
+            }
+        }
+    };
+
     const calculateValue = (items) =>
         items.reduce((sum, item) => sum + item.quantity * (item.market_price || 0), 0);
 
@@ -55,6 +76,7 @@ function TradeDetail() {
         return <div style={{padding: "2rem"}}>{error || "Loading..."}</div>;
     }
 
+    const isMyTrade = trade.user === currentUser;
     const offeredValue = calculateValue(trade.offered_items);
     const requestedValue = calculateValue(trade.requested_items);
 
@@ -97,7 +119,28 @@ function TradeDetail() {
                 </div>
             </div>
 
-            {canAccept ? (
+            {isMyTrade ? (
+                <>
+                    <p style={{marginTop: "2rem", color: "#2563eb", fontWeight: "bold"}}>
+                        This trade was posted by you.
+                    </p>
+                    <button
+                        onClick={handleDelete}
+                        style={{
+                            marginTop: "1rem",
+                            padding: "0.6rem 1.2rem",
+                            backgroundColor: "#ef4444",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                        }}
+                    >
+                        Delete Trade
+                    </button>
+                </>
+            ) : canAccept ? (
                 <button
                     style={{
                         marginTop: "2rem",

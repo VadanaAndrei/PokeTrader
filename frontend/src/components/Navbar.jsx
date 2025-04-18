@@ -39,7 +39,19 @@ function Navbar() {
             <div className="navbar">
                 <div style={{marginRight: "auto", color: "white", display: "flex", gap: "1rem"}}>
                     {username ? (
-                        <span>Hello, {username}</span>
+                        <span>
+                            Hello,{" "}
+                            <Link
+                                to="/profile"
+                                style={{
+                                    color: "white",
+                                    textDecoration: "underline",
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                {username}
+                            </Link>
+                        </span>
                     ) : (
                         <>
                             <Link to="/login" style={{color: "white", textDecoration: "none"}}>

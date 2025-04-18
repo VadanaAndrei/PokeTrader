@@ -103,6 +103,12 @@ class TradeListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
+        user = self.request.user
+        posted_by_me = self.request.query_params.get("posted_by_me") == "true"
+
+        if posted_by_me and user.is_authenticated:
+            return Trade.objects.filter(user=user).order_by("-created_at")
+
         return Trade.objects.filter(is_active=True).order_by("-created_at")
 
     def get_serializer_class(self):
@@ -117,6 +123,7 @@ class TradeListCreateView(ListCreateAPIView):
 
         output_serializer = TradeSerializer(trade)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+
 
 class TradeDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Trade.objects.all()
@@ -146,7 +153,6 @@ class AcceptTradeView(APIView):
                 ).aggregate(total=Sum("quantity"))["total"] or 0
 
                 available_quantity = user_card.quantity - blocked
-
                 if available_quantity < requested.quantity:
                     return Response({"error": f"Not enough of {requested.card.name}"}, status=400)
 
@@ -164,5 +170,24 @@ class AcceptedTradesView(ListAPIView):
         return Trade.objects.filter(
             accepted_by=self.request.user
         ).order_by("-created_at")
+
+
+class MessageListCreateView(ListCreateAPIView):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        trade_id = self.kwargs["trade_id"]
+        return Message.objects.filter(trade_id=trade_id).order_by("timestamp")
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print("serializer errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        trade_id = self.kwargs["trade_id"]
+        serializer.save(sender=request.user, trade_id=trade_id)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 

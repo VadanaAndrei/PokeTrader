@@ -20,9 +20,33 @@ function Collection() {
 
   return (
     <div style={{ padding: "2rem", backgroundColor: "#f4f4f4", minHeight: "100vh" }}>
+      <style>
+        {`
+          .button-theme {
+            background-color: #e60012;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+          }
+          .button-theme:hover {
+            background-color: #cc000f;
+            transform: translateY(-2px);
+          }
+          .button-theme:active {
+            transform: scale(0.98);
+          }
+        `}
+      </style>
+
       <div
         style={{
-          maxWidth: "1200px",
+          maxWidth: "1450px",
           margin: "0 auto",
           display: "flex",
           justifyContent: "space-between",
@@ -32,17 +56,9 @@ function Collection() {
         }}
       >
         <h2 style={{ margin: 0 }}>Your Collection</h2>
-        <div style={{ display: "flex", gap: "1rem" }}>
-          <Link to="/trade-form">
-            <button style={{ padding: "0.5rem 1rem", borderRadius: "8px" }}>Create Trade</button>
-          </Link>
-          <Link to="/posted-trades">
-            <button style={{ padding: "0.5rem 1rem", borderRadius: "8px" }}>Posted Trades</button>
-          </Link>
-          <Link to="/accepted-trades">
-            <button style={{ padding: "0.5rem 1rem", borderRadius: "8px" }}>Accepted Trades</button>
-          </Link>
-        </div>
+        <Link to="/trade-form">
+          <button className="button-theme">Create Trade</button>
+        </Link>
       </div>
 
       <p

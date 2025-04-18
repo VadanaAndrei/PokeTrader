@@ -16,6 +16,8 @@ import TradeForm from "./components/TradeForm.jsx";
 import TradeDetail from "./pages/TradeDetail.jsx";
 import PostedTrades from "./pages/PostedTrades.jsx";
 import AcceptedTrades from "./pages/AcceptedTrades.jsx";
+import Profile from "./pages/Profile.jsx";
+import TradeChat from "./pages/TradeChat.jsx";
 
 function Logout() {
     useEffect(() => {
@@ -114,6 +116,22 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <AcceptedTrades/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute>
+                            <Profile/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/trades/:tradeId/chat"
+                    element={
+                        <ProtectedRoute>
+                            <TradeChat/>
                         </ProtectedRoute>
                     }
                 />

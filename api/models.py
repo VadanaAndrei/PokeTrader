@@ -6,7 +6,7 @@ class Set(models.Model):
     name = models.CharField(max_length=255)
     logo_url = models.URLField()
     release_date = models.DateField(null=True, blank=True)
-    series = models.CharField(max_length=100, default="Other")  # ← AICI
+    series = models.CharField(max_length=100, default="Other")
 
     def __str__(self):
         return self.name
@@ -67,3 +67,13 @@ class TradeRequestedCard(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.card.name}"
+
+
+class Message(models.Model):
+    trade = models.ForeignKey('Trade', on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    text = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sender.username}: {self.text[:30]}"
