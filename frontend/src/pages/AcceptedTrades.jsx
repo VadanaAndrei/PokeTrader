@@ -1,93 +1,126 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
 import api from "../api";
 
 function AcceptedTrades() {
-  const [trades, setTrades] = useState([]);
+    const [trades, setTrades] = useState([]);
 
-  useEffect(() => {
-    const fetchTrades = async () => {
-      try {
-        const res = await api.get("/api/trades/accepted/");
-        setTrades(res.data);
-      } catch (err) {
-        console.error("Failed to fetch accepted trades", err);
-      }
-    };
-    fetchTrades();
-  }, []);
+    useEffect(() => {
+        const fetchTrades = async () => {
+            try {
+                const res = await api.get("/api/trades/accepted/");
+                setTrades(res.data);
+            } catch (err) {
+                console.error("Failed to fetch accepted trades", err);
+            }
+        };
+        fetchTrades();
+    }, []);
 
-  const calculateValue = (items) =>
-    items.reduce((sum, item) => sum + item.quantity * (item.market_price || 0), 0);
+    const calculateValue = (items) =>
+        items.reduce((sum, item) => sum + item.quantity * (item.market_price || 0), 0);
 
-  return (
-    <div style={{ padding: "2rem", backgroundColor: "#f4f4f4", minHeight: "100vh" }}>
-      <h1>Accepted Trades</h1>
-      {trades.length === 0 ? (
-        <p>No accepted trades yet.</p>
-      ) : (
-        trades.map((trade) => {
-          const offeredValue = calculateValue(trade.offered_items);
-          const requestedValue = calculateValue(trade.requested_items);
+    return (
+        <div style={{padding: "2rem", backgroundColor: "#f4f4f4", minHeight: "100vh"}}>
+            <h1 style={{marginBottom: "2rem"}}>Accepted Trades</h1>
+            {trades.length === 0 ? (
+                <p>No accepted trades yet.</p>
+            ) : (
+                trades.map((trade) => {
+                    const offeredValue = calculateValue(trade.offered_items);
+                    const requestedValue = calculateValue(trade.requested_items);
 
-          return (
-            <div
-              key={trade.id}
-              style={{
-                border: "1px solid #ccc",
-                padding: "1rem",
-                marginBottom: "1.5rem",
-                borderRadius: "8px",
-                background: "#fff",
-              }}
-            >
-              <p><strong>Posted by:</strong> {trade.user}</p>
+                    return (
+                        <div
+                            key={trade.id}
+                            style={{
+                                backgroundColor: "#fff",
+                                borderRadius: "12px",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                                padding: "1.5rem",
+                                marginBottom: "2rem",
+                                maxWidth: "900px",
+                                marginLeft: "auto",
+                                marginRight: "auto",
+                            }}
+                        >
+                            <p style={{fontWeight: "bold", marginBottom: "1rem"}}>Posted by: {trade.user}</p>
 
-              <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
-                <div>
-                  <p><strong>Offers:</strong></p>
-                  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                    {trade.offered_items.map((item, i) => (
-                      <div key={i} style={{ width: "120px", textAlign: "center" }}>
-                        <img src={item.image_url} alt={item.name} style={{ width: "100%" }} />
-                        <p>{item.name}</p>
-                        <p>x{item.quantity}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <p style={{ marginTop: "0.5rem" }}>
-                    <strong>Total Value:</strong> ${offeredValue.toFixed(2)}
-                  </p>
-                </div>
+                            <div style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                gap: "2rem",
+                                flexWrap: "wrap"
+                            }}>
+                                <div style={{flex: 1}}>
+                                    <p style={{fontWeight: "bold"}}>Offers:</p>
+                                    <div style={{display: "flex", gap: "1rem", flexWrap: "wrap"}}>
+                                        {trade.offered_items.map((item, i) => (
+                                            <div key={i} style={{width: "120px", textAlign: "center"}}>
+                                                <img src={item.image_url} alt={item.name}
+                                                     style={{width: "100%", borderRadius: "8px"}}/>
+                                                <p style={{marginBottom: "0.2rem"}}>{item.name}</p>
+                                                <p style={{fontSize: "0.9rem", color: "#777", margin: "0.2rem 0"}}>
+                                                    {item.set_name}, #{item.number}
+                                                </p>
+                                                <p style={{fontSize: "0.85rem", margin: "0.2rem 0"}}>
+                                                    Price: ${item.market_price?.toFixed(2) ?? "N/A"}
+                                                </p>
+                                                <p>x{item.quantity}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p style={{marginTop: "1rem"}}>
+                                        <strong>Total Value:</strong> ${offeredValue.toFixed(2)}
+                                    </p>
+                                </div>
 
-                <div>
-                  <p><strong>Wants:</strong></p>
-                  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                    {trade.requested_items.map((item, i) => (
-                      <div key={i} style={{ width: "120px", textAlign: "center" }}>
-                        <img src={item.image_url} alt={item.name} style={{ width: "100%" }} />
-                        <p>{item.name}</p>
-                        <p>x{item.quantity}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <p style={{ marginTop: "0.5rem" }}>
-                    <strong>Total Value:</strong> ${requestedValue.toFixed(2)}
-                  </p>
-                </div>
-              </div>
+                                <div style={{flex: 1}}>
+                                    <p style={{fontWeight: "bold"}}>Wants:</p>
+                                    <div style={{display: "flex", gap: "1rem", flexWrap: "wrap"}}>
+                                        {trade.requested_items.map((item, i) => (
+                                            <div key={i} style={{width: "120px", textAlign: "center"}}>
+                                                <img src={item.image_url} alt={item.name}
+                                                     style={{width: "100%", borderRadius: "8px"}}/>
+                                                <p style={{marginBottom: "0.2rem"}}>{item.name}</p>
+                                                <p style={{fontSize: "0.9rem", color: "#777", margin: "0.2rem 0"}}>
+                                                    {item.set_name}, #{item.number}
+                                                </p>
+                                                <p style={{fontSize: "0.85rem", margin: "0.2rem 0"}}>
+                                                    Price: ${item.market_price?.toFixed(2) ?? "N/A"}
+                                                </p>
+                                                <p>x{item.quantity}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p style={{marginTop: "1rem"}}>
+                                        <strong>Total Value:</strong> ${requestedValue.toFixed(2)}
+                                    </p>
+                                </div>
+                            </div>
 
-              <Link to={`/trades/${trade.id}/chat`}>
-                <button style={{ marginTop: "1rem", padding: "0.5rem 1rem", borderRadius: "6px" }}>
-                  Go to chat
-                </button>
-              </Link>
-            </div>
-          );
-        })
-      )}
-    </div>
-  );
+                            <Link to={`/trades/${trade.id}/chat`}>
+                                <button
+                                    style={{
+                                        marginTop: "1.5rem",
+                                        padding: "0.6rem 1.2rem",
+                                        borderRadius: "8px",
+                                        border: "none",
+                                        backgroundColor: "#e60012",
+                                        color: "white",
+                                        fontWeight: "bold",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    Go to chat
+                                </button>
+                            </Link>
+                        </div>
+                    );
+                })
+            )}
+        </div>
+    );
 }
 
 export default AcceptedTrades;

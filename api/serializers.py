@@ -94,12 +94,15 @@ class TradeOfferedCardSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="user_card.card.name", read_only=True)
     image_url = serializers.URLField(source="user_card.card.image_url", read_only=True)
     market_price = serializers.FloatField(source="user_card.card.market_price", read_only=True)
+    number = serializers.CharField(source="user_card.card.number", read_only=True)
+    set_name = serializers.CharField(source="user_card.card.set.name", read_only=True)
 
     class Meta:
         model = TradeOfferedCard
-        fields = ["user_card", "quantity", "name", "image_url", "market_price"]
-
-
+        fields = [
+            "user_card", "quantity", "name", "image_url",
+            "market_price", "number", "set_name"
+        ]
 
 
 class TradeRequestedCardSerializer(serializers.ModelSerializer):
@@ -107,11 +110,15 @@ class TradeRequestedCardSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="card.name", read_only=True)
     image_url = serializers.URLField(source="card.image_url", read_only=True)
     market_price = serializers.FloatField(source="card.market_price", read_only=True)
+    number = serializers.CharField(source="card.number", read_only=True)
+    set_name = serializers.CharField(source="card.set.name", read_only=True)
 
     class Meta:
         model = TradeRequestedCard
-        fields = ["card", "quantity", "card_id", "name", "image_url", "market_price"]
-
+        fields = [
+            "card", "quantity", "card_id", "name", "image_url",
+            "market_price", "number", "set_name"
+        ]
 
 
 class TradeCreateSerializer(serializers.ModelSerializer):
