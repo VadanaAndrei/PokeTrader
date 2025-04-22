@@ -15,5 +15,7 @@ urlpatterns = [
     path("trades/<int:trade_id>/accept/", AcceptTradeView.as_view(), name="accept-trade"),
     path("trades/accepted/", AcceptedTradesView.as_view(), name="accepted-trades"),
     path("trades/<int:trade_id>/messages/", MessageListCreateView.as_view(), name="trade-messages"),
+    path("trades/<int:trade_id>/confirm/", ConfirmTradeView.as_view(), name="confirm-trade"),
+    path("trades/<int:trade_id>/confirmation/", TradeConfirmationStatusView.as_view(), name="trade-confirmation-status"),
 
 ]

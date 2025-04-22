@@ -170,6 +170,12 @@ class MessageSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "timestamp", "sender", "sender_username", "trade"]
 
 
+class TradeConfirmationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TradeConfirmation
+        fields = ["poster_confirmed", "accepter_confirmed"]
+
+
 
 
 

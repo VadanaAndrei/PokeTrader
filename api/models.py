@@ -77,3 +77,12 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.sender.username}: {self.text[:30]}"
+
+
+class TradeConfirmation(models.Model):
+    trade = models.OneToOneField(Trade, on_delete=models.CASCADE, related_name="confirmation")
+    poster_confirmed = models.BooleanField(default=False)
+    accepter_confirmed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Confirmation for trade {self.trade.id}"

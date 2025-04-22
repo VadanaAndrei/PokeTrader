@@ -191,3 +191,88 @@ class MessageListCreateView(ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+
+class ConfirmTradeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, trade_id):
+        try:
+            trade = Trade.objects.get(id=trade_id, is_active=False)
+            confirmation, _ = TradeConfirmation.objects.get_or_create(trade=trade)
+
+            if request.user == trade.user:
+                confirmation.poster_confirmed = True
+            elif request.user == trade.accepted_by:
+                confirmation.accepter_confirmed = True
+            else:
+                return Response({"error": "Not part of this trade"}, status=403)
+
+            confirmation.save()
+
+            if confirmation.poster_confirmed and confirmation.accepter_confirmed:
+                with transaction.atomic():
+                    for offered in trade.offered_items.all():
+                        offered.user_card.quantity -= offered.quantity
+                        offered.user_card.save()
+
+                        accepter_card, _ = UserCard.objects.get_or_create(
+                            user=trade.accepted_by, card=offered.user_card.card
+                        )
+                        accepter_card.quantity += offered.quantity
+                        accepter_card.save()
+
+                    for requested in trade.requested_items.all():
+                        accepter_card = UserCard.objects.get(
+                            user=trade.accepted_by, card=requested.card
+                        )
+                        accepter_card.quantity -= requested.quantity
+                        accepter_card.save()
+
+                        poster_card, _ = UserCard.objects.get_or_create(
+                            user=trade.user, card=requested.card
+                        )
+                        poster_card.quantity += requested.quantity
+                        poster_card.save()
+
+                    trade.delete()
+
+                return Response({
+                    "message": "Trade fully confirmed and executed!",
+                    "confirmed": True
+                })
+
+            return Response({
+                "message": "Confirmation saved. Waiting for the other user.",
+                "confirmed": False
+            })
+
+        except Trade.DoesNotExist:
+            return Response({"error": "Trade not found"}, status=404)
+
+
+
+class TradeConfirmationStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, trade_id):
+        try:
+            trade = Trade.objects.get(id=trade_id)
+            confirmation = TradeConfirmation.objects.filter(trade=trade).first()
+            if not confirmation:
+                return Response({
+                    "poster_confirmed": False,
+                    "accepter_confirmed": False,
+                    "user_is_poster": request.user == trade.user
+                })
+
+            return Response({
+                "poster_confirmed": confirmation.poster_confirmed,
+                "accepter_confirmed": confirmation.accepter_confirmed,
+                "user_is_poster": request.user == trade.user
+            })
+
+        except Trade.DoesNotExist:
+            return Response({"error": "Trade not found"}, status=404)
+
+
+
