@@ -18,6 +18,7 @@ import PostedTrades from "./pages/PostedTrades.jsx";
 import AcceptedTrades from "./pages/AcceptedTrades.jsx";
 import Profile from "./pages/Profile.jsx";
 import TradeChat from "./pages/TradeChat.jsx";
+import GuessGame from "./pages/GuessGame.jsx";
 
 function Logout() {
     useEffect(() => {
@@ -132,6 +133,14 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <TradeChat/>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/guess-game"
+                    element={
+                        <ProtectedRoute>
+                            <GuessGame/>
                         </ProtectedRoute>
                     }
                 />

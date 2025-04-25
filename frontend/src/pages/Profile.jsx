@@ -1,21 +1,31 @@
 import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import api from "../api";
 
 function Profile() {
   const [username, setUsername] = useState("");
+  const [coins, setCoins] = useState(0);
 
   useEffect(() => {
-    const token = localStorage.getItem("access");
-    if (token) {
-      const decoded = jwtDecode(token);
-      setUsername(decoded.username);
-    }
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/api/profile/");
+        setUsername(res.data.username);
+        setCoins(res.data.coins);
+      } catch (err) {
+        console.error("Error loading profile:", err);
+      }
+    };
+
+    fetchProfile();
   }, []);
 
   return (
     <div style={{ padding: "2rem", textAlign: "center" }}>
       <h2>Profile</h2>
       <p>Welcome, <strong>{username}</strong>!</p>
+      <p style={{ marginTop: "1rem", fontSize: "1.2rem" }}>
+        🪙 PokeCoins: <strong>{coins}</strong>
+      </p>
     </div>
   );
 }

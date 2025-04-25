@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import generics, status
 from rest_framework.filters import SearchFilter
@@ -10,7 +9,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import *
 from .serializers import *
 from django.db.models.functions import Cast
-from django.db.models import IntegerField, Sum, Prefetch
+from django.db.models import IntegerField, Sum
+import random
+import re
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -275,4 +276,170 @@ class TradeConfirmationStatusView(APIView):
             return Response({"error": "Trade not found"}, status=404)
 
 
+
+class StartGuessGameView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if PokemonGuessGame.objects.filter(user=request.user, is_active=True).exists():
+            return Response({"message": "You already have an active game."}, status=400)
+
+        pokemon = random.choice(PokemonInfo.objects.all())
+        PokemonGuessGame.objects.create(user=request.user, target=pokemon)
+
+        print(f"Chosen Pokemon: {pokemon.name}")
+
+        return Response({"message": "New game started!"})
+
+
+def save_guess_message(game, text, answer, is_guess=False):
+    GuessMessage.objects.create(
+        game=game,
+        text=text,
+        answer=answer,
+        is_guess=is_guess
+    )
+
+
+class AskQuestionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        question = request.data.get("question", "").lower()
+        try:
+            game = PokemonGuessGame.objects.get(user=request.user, is_active=True)
+        except PokemonGuessGame.DoesNotExist:
+            return Response({"error": "No active game found."}, status=404)
+
+        pokemon = game.target
+        types = json.loads(pokemon.types)
+        stats = json.loads(pokemon.stats)
+
+        if "type" in question:
+            for t in ["bug", "dragon", "electric", "fighting", "fire", "flying", "ghost", "grass", "ground", "ice", "normal", "poison", "psychic", "rock", "water"]:
+                if t in question:
+                    answer = "yes" if t in types else "no"
+                    save_guess_message(game, question, answer)
+                    return Response({"answer": answer})
+
+        if "height" in question or "tall" in question or "short" in question:
+            height = pokemon.height
+            match = re.search(r"(\d+(\.\d+)?)(\s)?(m|meter|meters)", question)
+
+            if match:
+                value = float(match.group(1))
+
+                if "more" in question or "greater" in question or "taller" in question:
+                    answer = "yes" if height > value else "no"
+                    save_guess_message(game, question, answer)
+                    return Response({"answer": answer})
+
+                if "less" in question or "shorter" in question:
+                    answer = "yes" if height < value else "no"
+                    save_guess_message(game, question, answer)
+                    return Response({"answer": answer})
+
+        if "weight" in question or "weigh" in question:
+            weight = pokemon.weight
+            match = re.search(r"(\d+(\.\d+)?)(\s)?(kg|kilograms|kilos)", question)
+
+            if match:
+                value = float(match.group(1))
+
+                if "more" in question or "greater" in question:
+                    answer = "yes" if weight > value else "no"
+                    save_guess_message(game, question, answer)
+                    return Response({"answer": answer})
+
+                if "less" in question or "lighter" in question:
+                    answer = "yes" if weight < value else "no"
+                    save_guess_message(game, question, answer)
+                    return Response({"answer": answer})
+
+        stats = json.loads(pokemon.stats)
+        stat_aliases = {
+            "hp": "hp",
+            "health": "hp",
+            "health-points": "hp",
+            "health points": "hp",
+            "special-attack": "special-attack",
+            "special attack": "special-attack",
+            "special-defense": "special-defense",
+            "special defense": "special-defense",
+            "attack": "attack",
+            "defense": "defense",
+            "speed": "speed"
+        }
+
+        q = question.lower()
+
+        for alias, stat_key in stat_aliases.items():
+            if alias in q:
+                match = re.search(r"(\d+(\.\d+)?)(\s)?", q)
+                if match:
+                    value = float(match.group(1))
+                    actual_stat = stats.get(stat_key, 0)
+
+                    if "more" in q or "greater" in q or "higher" in q:
+                        answer = "yes" if actual_stat > value else "no"
+                        save_guess_message(game, question, answer)
+                        return Response({"answer": answer})
+
+                    if "less" in q or "lower" in q:
+                        answer = "yes" if actual_stat < value else "no"
+                        save_guess_message(game, question, answer)
+                        return Response({"answer": answer})
+
+        save_guess_message(game, question, "I don't understand the question.")
+        return Response({"answer": "I don't understand the question."})
+
+
+class GuessPokemonView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        guess = request.data.get("guess", "").lower()
+
+        try:
+            game = PokemonGuessGame.objects.get(user=request.user, is_active=True)
+        except PokemonGuessGame.DoesNotExist:
+            return Response({"error": "No active game."}, status=404)
+
+        if guess == game.target.name.lower():
+            profile = request.user.userprofile
+            profile.coins += 10
+            profile.save()
+            save_guess_message(game, guess, "Correct!", is_guess=True)
+            game.delete()
+
+            return Response({"correct": True, "message": "Correct! You earned 10 coins."})
+
+        save_guess_message(game, guess, "Incorrect. Try again!", is_guess=True)
+        return Response({"correct": False, "message": "Incorrect. Try again!"})
+
+
+class ActiveGameView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        game = PokemonGuessGame.objects.filter(user=request.user, is_active=True).first()
+        if not game:
+            return Response({"active": False})
+
+        messages = game.messages.order_by("timestamp").values("is_guess", "text", "answer", "timestamp")
+        return Response({
+            "active": True,
+            "target_name": game.target.name,
+            "messages": list(messages)
+        })
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        return Response({
+            "username": request.user.username,
+            "coins": profile.coins
+        })
 

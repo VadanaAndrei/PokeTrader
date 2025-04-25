@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import json
 
 class Set(models.Model):
     set_id = models.CharField(max_length=100, unique=True)
@@ -86,3 +87,44 @@ class TradeConfirmation(models.Model):
 
     def __str__(self):
         return f"Confirmation for trade {self.trade.id}"
+
+
+class PokemonInfo(models.Model):
+    name = models.CharField(max_length=100)
+    height = models.FloatField(null=True, blank=True)
+    weight = models.FloatField(null=True, blank=True)
+    image_url = models.URLField(null=True, blank=True)
+    types = models.TextField(null=True, blank=True)
+    stats = models.TextField(null=True, blank=True)
+
+    def get_types(self):
+        return json.loads(self.types) if self.types else []
+
+    def get_stats(self):
+        return json.loads(self.stats) if self.stats else {}
+
+    def __str__(self):
+        return self.name
+
+
+class PokemonGuessGame(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    target = models.ForeignKey("PokemonInfo", on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} is guessing {self.target.name}"
+
+
+class GuessMessage(models.Model):
+    game = models.ForeignKey(PokemonGuessGame, on_delete=models.CASCADE, related_name="messages")
+    is_guess = models.BooleanField(default=False)
+    text = models.TextField()
+    answer = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    coins = models.IntegerField(default=0)
