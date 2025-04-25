@@ -52,3 +52,4 @@ coverage/
 # Other
 import_cards.py
 clear_sets_and_cards.py
+import_pokemon_info.py
