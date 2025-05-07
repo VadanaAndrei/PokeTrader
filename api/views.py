@@ -122,6 +122,17 @@ class TradeListCreateView(ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         trade = serializer.save(user=request.user)
 
+        offered_coins = request.data.get("offered_coins", 0)
+        if offered_coins:
+            profile = request.user.userprofile
+            if profile.coins < offered_coins:
+                return Response({"error": "You don't have enough coins."}, status=status.HTTP_400_BAD_REQUEST)
+            profile.coins -= offered_coins
+            profile.save()
+
+            trade.offered_coins = offered_coins
+            trade.save()
+
         output_serializer = TradeSerializer(trade)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -130,6 +141,17 @@ class TradeDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Trade.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = TradeSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if instance.offered_coins > 0:
+            profile, _ = UserProfile.objects.get_or_create(user=instance.user)
+            profile.coins += instance.offered_coins
+            profile.save()
+
+        self.perform_destroy(instance)
+        return Response({"message": "Trade deleted and coins returned."}, status=status.HTTP_204_NO_CONTENT)
 
 
 class AcceptTradeView(APIView):

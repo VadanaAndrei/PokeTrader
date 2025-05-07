@@ -80,45 +80,88 @@ function TradeDetail() {
 
   const renderCardInfo = (item) => (
     <>
-      <p style={{ marginBottom: "0.1rem"}}>{item.name}</p>
+      <p style={{ marginBottom: "0.1rem" }}>{item.name}</p>
       <p style={{ fontSize: "0.85rem", color: "#666", margin: 0 }}>
         {item.set_name}, #{item.number}
       </p>
       <p style={{ fontSize: "0.85rem", color: "#444", marginTop: 0 }}>
         Price: ${item.market_price?.toFixed(2) ?? "N/A"}
       </p>
-      <p style={{ fontSize: "0.85rem", color: "#666", marginTop: "0.3rem" }}>x{item.quantity}</p>
+      <p style={{ fontSize: "0.85rem", color: "#666", marginTop: "0.3rem" }}>
+        x{item.quantity}
+      </p>
     </>
+  );
+
+  const renderSection = (title, items, coins, value) => (
+    <div
+      style={{
+        flex: 1,
+        minWidth: "300px",
+        background: "white",
+        borderRadius: "8px",
+        padding: "1rem",
+        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }}
+    >
+      <div>
+        <h3>{title}</h3>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ width: "120px", textAlign: "center" }}>
+              <img
+                src={item.image_url}
+                alt={item.name}
+                style={{ width: "100%", borderRadius: "6px" }}
+              />
+              {renderCardInfo(item)}
+            </div>
+          ))}
+
+          {items.length === 0 && coins > 0 && (
+            <div
+              style={{
+                width: "120px",
+                height: "200px",
+                borderRadius: "8px",
+                backgroundColor: "#fffbe6",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                color: "#d97706",
+                fontWeight: "bold",
+                fontSize: "1.2rem",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                textAlign: "center",
+              }}
+            >
+              💰
+              <div style={{ marginTop: "0.5rem" }}>{coins} PokeCoins</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <p style={{ marginTop: "1rem", fontWeight: "bold" }}>
+        Total Value: ${value.toFixed(2)}
+      </p>
+    </div>
   );
 
   return (
     <div style={{ padding: "2rem", backgroundColor: "#f4f4f4", minHeight: "100vh" }}>
       <h2 style={{ marginBottom: "1rem" }}>Trade Details</h2>
-      <p><strong>Posted by:</strong> {trade.user}</p>
+      <p>
+        <strong>Posted by:</strong> {trade.user}
+      </p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "2rem", marginTop: "1.5rem" }}>
-        {[{ title: "Offers", items: trade.offered_items, value: offeredValue },
-          { title: "Wants", items: trade.requested_items, value: requestedValue }].map((block, index) => (
-          <div key={index} style={{
-            flex: 1,
-            minWidth: "300px",
-            background: "white",
-            borderRadius: "8px",
-            padding: "1rem",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.1)"
-          }}>
-            <h3>{block.title}</h3>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
-              {block.items.map((item, i) => (
-                <div key={i} style={{ width: "120px", textAlign: "center" }}>
-                  <img src={item.image_url} alt={item.name} style={{ width: "100%", borderRadius: "6px" }} />
-                  {renderCardInfo(item)}
-                </div>
-              ))}
-            </div>
-            <p style={{ marginTop: "1rem" }}><strong>Total Value:</strong> ${block.value.toFixed(2)}</p>
-          </div>
-        ))}
+        {renderSection("Offers", trade.offered_items, trade.offered_coins, offeredValue)}
+        {renderSection("Wants", trade.requested_items, trade.requested_coins, requestedValue)}
       </div>
 
       {isMyTrade ? (

@@ -18,7 +18,6 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -88,8 +87,6 @@ class UserCardSerializer(serializers.ModelSerializer):
 
         return obj.quantity - blocked_active - blocked_accepted_as_responder - blocked_accepted_as_creator
 
-
-
 class TradeOfferedCardSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="user_card.card.name", read_only=True)
     image_url = serializers.URLField(source="user_card.card.image_url", read_only=True)
@@ -124,16 +121,28 @@ class TradeRequestedCardSerializer(serializers.ModelSerializer):
 class TradeCreateSerializer(serializers.ModelSerializer):
     offered_items = serializers.ListField()
     requested_items = serializers.ListField()
+    offered_coins = serializers.IntegerField(required=False, default=0)
+    requested_coins = serializers.IntegerField(required=False, default=0)
 
     class Meta:
         model = Trade
-        fields = ["offered_items", "requested_items"]
+        fields = ["offered_items", "requested_items", "offered_coins", "requested_coins"]
 
     def create(self, validated_data):
         user = self.context["request"].user
-        trade = Trade.objects.create(user=user)
 
-        for item in validated_data["offered_items"]:
+        offered_items = validated_data.pop("offered_items", [])
+        requested_items = validated_data.pop("requested_items", [])
+        offered_coins = validated_data.pop("offered_coins", 0)
+        requested_coins = validated_data.pop("requested_coins", 0)
+
+        trade = Trade.objects.create(
+            user=user,
+            offered_coins=offered_coins,
+            requested_coins=requested_coins
+        )
+
+        for item in offered_items:
             user_card = UserCard.objects.get(id=item["user_card"])
             card = user_card.card
 
@@ -146,7 +155,7 @@ class TradeCreateSerializer(serializers.ModelSerializer):
                 market_price=card.market_price
             )
 
-        for item in validated_data["requested_items"]:
+        for item in requested_items:
             TradeRequestedCard.objects.create(
                 trade=trade,
                 card=PokemonCard.objects.get(id=item["card"]),
@@ -162,10 +171,18 @@ class TradeSerializer(serializers.ModelSerializer):
     accepted_by = serializers.CharField(source="accepted_by.username", read_only=True)
     offered_items = TradeOfferedCardSerializer(many=True, read_only=True)
     requested_items = TradeRequestedCardSerializer(many=True, read_only=True)
+    offered_coins = serializers.IntegerField()
+    requested_coins = serializers.IntegerField()
 
     class Meta:
         model = Trade
-        fields = ["id", "user", "created_at", "is_active", "offered_items", "requested_items", "accepted_by"]
+        fields = [
+            "id", "user", "created_at", "is_active",
+            "offered_items", "requested_items",
+            "offered_coins", "requested_coins",
+            "accepted_by"
+        ]
+
 
 
 class MessageSerializer(serializers.ModelSerializer):

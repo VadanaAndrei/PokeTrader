@@ -40,8 +40,9 @@ class Trade(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trades")
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    accepted_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
-                                    related_name="accepted_trades")
+    accepted_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="accepted_trades")
+    offered_coins = models.IntegerField(default=0)
+    requested_coins = models.IntegerField(default=0)
 
     def __str__(self):
         return f"Trade by {self.user.username}"
