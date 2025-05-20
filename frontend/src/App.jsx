@@ -19,6 +19,7 @@ import AcceptedTrades from "./pages/AcceptedTrades.jsx";
 import Profile from "./pages/Profile.jsx";
 import TradeChat from "./pages/TradeChat.jsx";
 import GuessGame from "./pages/GuessGame.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 
 function Logout() {
     useEffect(() => {
@@ -42,6 +43,7 @@ function LoginAndLogout() {
 function App() {
     return (
         <BrowserRouter>
+            <ScrollToTop/>
             <Navbar/>
             <Routes>
                 <Route path="/" element={<Home/>}/>

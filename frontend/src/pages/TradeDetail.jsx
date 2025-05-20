@@ -7,6 +7,7 @@ function TradeDetail() {
   const { id: tradeId } = useParams();
   const [trade, setTrade] = useState(null);
   const [collection, setCollection] = useState({});
+  const [userCoins, setUserCoins] = useState(0);
   const [error, setError] = useState("");
   const [currentUser, setCurrentUser] = useState("");
   const navigate = useNavigate();
@@ -20,12 +21,14 @@ function TradeDetail() {
 
     const fetchData = async () => {
       try {
-        const [tradeRes, collectionRes] = await Promise.all([
+        const [tradeRes, collectionRes, profileRes] = await Promise.all([
           api.get(`/api/trades/${tradeId}/`),
           api.get("/api/collection/"),
+          api.get("/api/profile/")
         ]);
 
         setTrade(tradeRes.data);
+        setUserCoins(profileRes.data.coins);
 
         const collectionMap = {};
         collectionRes.data.forEach((c) => {
@@ -66,9 +69,9 @@ function TradeDetail() {
   const calculateValue = (items) =>
     items.reduce((sum, item) => sum + item.quantity * (item.market_price || 0), 0);
 
-  const canAccept = trade?.requested_items.every(
-    (item) => collection[item.card_id] >= item.quantity
-  );
+  const canAccept =
+    trade?.requested_items.every((item) => collection[item.card_id] >= item.quantity) &&
+    userCoins >= (trade?.requested_coins || 0);
 
   if (!trade) {
     return <div style={{ padding: "2rem" }}>{error || "Loading..."}</div>;
@@ -121,11 +124,11 @@ function TradeDetail() {
             </div>
           ))}
 
-          {items.length === 0 && coins > 0 && (
+          {coins > 0 && (
             <div
               style={{
                 width: "120px",
-                height: "200px",
+                height: "170px",
                 borderRadius: "8px",
                 backgroundColor: "#fffbe6",
                 display: "flex",
@@ -203,7 +206,7 @@ function TradeDetail() {
         </button>
       ) : (
         <p style={{ marginTop: "2rem", color: "#dc2626", fontWeight: "bold" }}>
-          You don't have the required cards to accept this trade.
+          You don't have the required cards or enough PokeCoins to accept this trade.
         </p>
       )}
     </div>

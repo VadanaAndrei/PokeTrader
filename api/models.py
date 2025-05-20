@@ -48,7 +48,6 @@ class Trade(models.Model):
         return f"Trade by {self.user.username}"
 
 
-
 class TradeOfferedCard(models.Model):
     trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name="offered_items")
     user_card = models.ForeignKey(UserCard, on_delete=models.CASCADE, related_name="in_trades")

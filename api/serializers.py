@@ -173,6 +173,7 @@ class TradeSerializer(serializers.ModelSerializer):
     requested_items = TradeRequestedCardSerializer(many=True, read_only=True)
     offered_coins = serializers.IntegerField()
     requested_coins = serializers.IntegerField()
+    user_coins = serializers.SerializerMethodField()
 
     class Meta:
         model = Trade
@@ -180,8 +181,14 @@ class TradeSerializer(serializers.ModelSerializer):
             "id", "user", "created_at", "is_active",
             "offered_items", "requested_items",
             "offered_coins", "requested_coins",
-            "accepted_by"
+            "accepted_by", "user_coins"
         ]
+
+    def get_user_coins(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return request.user.userprofile.coins
+        return 0
 
 
 

@@ -179,6 +179,12 @@ class AcceptTradeView(APIView):
                 if available_quantity < requested.quantity:
                     return Response({"error": f"Not enough of {requested.card.name}"}, status=400)
 
+            if trade.requested_coins > 0:
+                if request.user.userprofile.coins < trade.requested_coins:
+                    return Response({"error": "Not enough coins to accept this trade."}, status=400)
+                request.user.userprofile.coins -= trade.requested_coins
+                request.user.userprofile.save()
+
             trade.is_active = False
             trade.accepted_by = request.user
             trade.save()
@@ -257,6 +263,14 @@ class ConfirmTradeView(APIView):
                         poster_card.quantity += requested.quantity
                         poster_card.save()
 
+                    if trade.offered_coins > 0:
+                        trade.accepted_by.userprofile.coins += trade.offered_coins
+                        trade.accepted_by.userprofile.save()
+
+                    if trade.requested_coins > 0:
+                        trade.user.userprofile.coins += trade.requested_coins
+                        trade.user.userprofile.save()
+
                     trade.delete()
 
                 return Response({
@@ -271,6 +285,7 @@ class ConfirmTradeView(APIView):
 
         except Trade.DoesNotExist:
             return Response({"error": "Trade not found"}, status=404)
+
 
 
 
