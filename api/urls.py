@@ -16,11 +16,12 @@ urlpatterns = [
     path("trades/accepted/", AcceptedTradesView.as_view(), name="accepted-trades"),
     path("trades/<int:trade_id>/messages/", MessageListCreateView.as_view(), name="trade-messages"),
     path("trades/<int:trade_id>/confirm/", ConfirmTradeView.as_view(), name="confirm-trade"),
-    path("trades/<int:trade_id>/confirmation/", TradeConfirmationStatusView.as_view(), name="trade-confirmation-status"),
+    path("trades/<int:trade_id>/confirmation/", TradeConfirmationStatusView.as_view(),
+         name="trade-confirmation-status"),
     path("start-game/", StartGuessGameView.as_view(), name="start-game"),
     path("ask-question/", AskQuestionView.as_view(), name="ask-question"),
     path("guess/", GuessPokemonView.as_view(), name="guess-pokemon"),
     path("active-game/", ActiveGameView.as_view(), name="active-game"),
     path("profile/", ProfileView.as_view(), name='profile'),
-
+    path("trades/completed/", CompletedTradesView.as_view(), name="completed-trades"),
 ]

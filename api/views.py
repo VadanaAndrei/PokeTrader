@@ -12,6 +12,7 @@ from django.db.models.functions import Cast
 from django.db.models import IntegerField, Sum
 import random
 import re
+from django.utils import timezone
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -271,6 +272,20 @@ class ConfirmTradeView(APIView):
                         trade.user.userprofile.coins += trade.requested_coins
                         trade.user.userprofile.save()
 
+                    offered_items_data = TradeOfferedCardSerializer(trade.offered_items.all(), many=True).data
+                    requested_items_data = TradeRequestedCardSerializer(trade.requested_items.all(), many=True).data
+
+                    CompletedTrade.objects.create(
+                        user=trade.user,
+                        accepted_by=trade.accepted_by,
+                        created_at=trade.created_at,
+                        completed_at=timezone.now(),
+                        offered_coins=trade.offered_coins,
+                        requested_coins=trade.requested_coins,
+                        offered_items_snapshot=offered_items_data,
+                        requested_items_snapshot=requested_items_data
+                    )
+
                     trade.delete()
 
                 return Response({
@@ -479,4 +494,14 @@ class ProfileView(APIView):
             "username": request.user.username,
             "coins": profile.coins
         })
+
+class CompletedTradesView(ListAPIView):
+    serializer_class = CompletedTradeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return CompletedTrade.objects.filter(
+            models.Q(user=user) | models.Q(accepted_by=user)
+        ).order_by("-completed_at")
 

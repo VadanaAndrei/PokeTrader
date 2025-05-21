@@ -206,6 +206,21 @@ class TradeConfirmationSerializer(serializers.ModelSerializer):
         model = TradeConfirmation
         fields = ["poster_confirmed", "accepter_confirmed"]
 
+class CompletedTradeSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
+    accepted_by = serializers.CharField(source="accepted_by.username", read_only=True)
+
+    class Meta:
+        model = CompletedTrade
+        fields = [
+            "id", "user", "accepted_by", "created_at", "completed_at",
+            "offered_items_snapshot", "requested_items_snapshot",
+            "offered_coins", "requested_coins"
+        ]
+
+
+
+
 
 
 

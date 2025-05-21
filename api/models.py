@@ -128,3 +128,19 @@ class GuessMessage(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     coins = models.IntegerField(default=0)
+
+class CompletedTrade(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="completed_trades_as_poster")
+    accepted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="completed_trades_as_accepter")
+    created_at = models.DateTimeField()
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    offered_items_snapshot = models.JSONField(null=True, blank=True)
+    requested_items_snapshot = models.JSONField(null=True, blank=True)
+    offered_coins = models.IntegerField(default=0)
+    requested_coins = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"Completed Trade between {self.user.username} and {self.accepted_by.username}"
+
+
