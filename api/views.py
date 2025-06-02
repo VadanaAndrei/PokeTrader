@@ -13,7 +13,7 @@ from django.db.models import IntegerField, Sum
 import random
 import re
 from django.utils import timezone
-
+from django.db.models import Avg
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -327,8 +327,6 @@ class TradeConfirmationStatusView(APIView):
         except Trade.DoesNotExist:
             return Response({"error": "Trade not found"}, status=404)
 
-
-
 class StartGuessGameView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -343,7 +341,6 @@ class StartGuessGameView(APIView):
 
         return Response({"message": "New game started!"})
 
-
 def save_guess_message(game, text, answer, is_guess=False):
     GuessMessage.objects.create(
         game=game,
@@ -351,7 +348,6 @@ def save_guess_message(game, text, answer, is_guess=False):
         answer=answer,
         is_guess=is_guess
     )
-
 
 class AskQuestionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -445,7 +441,6 @@ class AskQuestionView(APIView):
         save_guess_message(game, question, "I don't understand the question.")
         return Response({"answer": "I don't understand the question."})
 
-
 class GuessPokemonView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -469,7 +464,6 @@ class GuessPokemonView(APIView):
         save_guess_message(game, guess, "Incorrect. Try again!", is_guess=True)
         return Response({"correct": False, "message": "Incorrect. Try again!"})
 
-
 class ActiveGameView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -485,16 +479,6 @@ class ActiveGameView(APIView):
             "messages": list(messages)
         })
 
-class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        profile, created = UserProfile.objects.get_or_create(user=request.user)
-        return Response({
-            "username": request.user.username,
-            "coins": profile.coins
-        })
-
 class CompletedTradesView(ListAPIView):
     serializer_class = CompletedTradeSerializer
     permission_classes = [IsAuthenticated]
@@ -504,4 +488,58 @@ class CompletedTradesView(ListAPIView):
         return CompletedTrade.objects.filter(
             models.Q(user=user) | models.Q(accepted_by=user)
         ).order_by("-completed_at")
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
+class RateTradeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            trade_id = request.data.get("trade")
+            rating_value = request.data.get("rating")
+
+            trade = CompletedTrade.objects.get(id=trade_id)
+
+            rating_obj, _ = TradeRating.objects.update_or_create(
+                trade=trade,
+                rated_by=request.user,
+                defaults={"rating": rating_value}
+            )
+
+            return Response({
+                "trade": trade.id,
+                "rating": rating_obj.rating,
+                "rated_by": request.user.username
+            }, status=201)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+
+class MyTradeRatingsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        ratings = TradeRating.objects.filter(rated_by=request.user)
+        data = {rating.trade.id: rating.rating for rating in ratings}
+        return Response(data)
+
+class AverageUserRatingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        trades = CompletedTrade.objects.filter(user=request.user)
+        avg_rating = TradeRating.objects.filter(trade__in=trades).aggregate(avg=Avg('rating'))['avg']
+        return Response({"average_rating": round(avg_rating or 0, 2)})
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        serializer = UserProfileSerializer(profile)
+        return Response(serializer.data)
 

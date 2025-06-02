@@ -143,4 +143,15 @@ class CompletedTrade(models.Model):
     def __str__(self):
         return f"Completed Trade between {self.user.username} and {self.accepted_by.username}"
 
+class TradeRating(models.Model):
+    trade = models.ForeignKey("CompletedTrade", on_delete=models.CASCADE, related_name="ratings")
+    rated_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.IntegerField()
+
+    class Meta:
+        unique_together = ('trade', 'rated_by')
+
+    def __str__(self):
+        return f"{self.rated_by.username} rated {self.trade.id} with {self.rating}"
+
 

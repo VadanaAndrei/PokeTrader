@@ -4,6 +4,7 @@ from django.db.models import Sum
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import *
+from django.db.models import Avg
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,7 +102,6 @@ class TradeOfferedCardSerializer(serializers.ModelSerializer):
             "market_price", "number", "set_name"
         ]
 
-
 class TradeRequestedCardSerializer(serializers.ModelSerializer):
     card_id = serializers.CharField(source="card.card_id", read_only=True)
     name = serializers.CharField(source="card.name", read_only=True)
@@ -116,7 +116,6 @@ class TradeRequestedCardSerializer(serializers.ModelSerializer):
             "card", "quantity", "card_id", "name", "image_url",
             "market_price", "number", "set_name"
         ]
-
 
 class TradeCreateSerializer(serializers.ModelSerializer):
     offered_items = serializers.ListField()
@@ -164,8 +163,6 @@ class TradeCreateSerializer(serializers.ModelSerializer):
 
         return trade
 
-
-
 class TradeSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
     accepted_by = serializers.CharField(source="accepted_by.username", read_only=True)
@@ -174,6 +171,7 @@ class TradeSerializer(serializers.ModelSerializer):
     offered_coins = serializers.IntegerField()
     requested_coins = serializers.IntegerField()
     user_coins = serializers.SerializerMethodField()
+    poster_rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Trade
@@ -181,7 +179,7 @@ class TradeSerializer(serializers.ModelSerializer):
             "id", "user", "created_at", "is_active",
             "offered_items", "requested_items",
             "offered_coins", "requested_coins",
-            "accepted_by", "user_coins"
+            "accepted_by", "user_coins", "poster_rating"
         ]
 
     def get_user_coins(self, obj):
@@ -190,7 +188,14 @@ class TradeSerializer(serializers.ModelSerializer):
             return request.user.userprofile.coins
         return 0
 
-
+    def get_poster_rating(self, obj):
+        from django.db.models import Q, Avg
+        user = obj.user
+        completed_trades = CompletedTrade.objects.filter(Q(user=user) | Q(accepted_by=user))
+        avg = \
+        TradeRating.objects.filter(trade__in=completed_trades).exclude(rated_by=user).aggregate(avg=Avg("rating"))[
+            "avg"]
+        return round(avg, 1) if avg is not None else None
 
 class MessageSerializer(serializers.ModelSerializer):
     sender_username = serializers.CharField(source="sender.username", read_only=True)
@@ -200,7 +205,6 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = ["id", "trade", "sender", "sender_username", "text", "timestamp"]
         read_only_fields = ["id", "timestamp", "sender", "sender_username", "trade"]
 
-
 class TradeConfirmationSerializer(serializers.ModelSerializer):
     class Meta:
         model = TradeConfirmation
@@ -209,16 +213,54 @@ class TradeConfirmationSerializer(serializers.ModelSerializer):
 class CompletedTradeSerializer(serializers.ModelSerializer):
     user = serializers.CharField(source="user.username", read_only=True)
     accepted_by = serializers.CharField(source="accepted_by.username", read_only=True)
+    offered_items_snapshot = serializers.JSONField()
+    requested_items_snapshot = serializers.JSONField()
+    offered_coins = serializers.IntegerField()
+    requested_coins = serializers.IntegerField()
+    rating_given = serializers.SerializerMethodField()
 
     class Meta:
         model = CompletedTrade
         fields = [
             "id", "user", "accepted_by", "created_at", "completed_at",
             "offered_items_snapshot", "requested_items_snapshot",
-            "offered_coins", "requested_coins"
+            "offered_coins", "requested_coins", "rating_given"
         ]
 
+    def get_rating_given(self, obj):
+        user = self.context["request"].user
+        rating = obj.ratings.filter(rated_by=user).first()
+        return rating.rating if rating else None
 
+class TradeRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TradeRating
+        fields = ['trade', 'rated_by', 'rating']
+        read_only_fields = ['rated_by']
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    average_rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserProfile
+        fields = ['username', 'coins', 'average_rating']
+
+    def get_average_rating(self, obj):
+        from django.db.models import Avg, Q
+        user = obj.user
+
+        completed_trades = CompletedTrade.objects.filter(
+            Q(user=user) | Q(accepted_by=user)
+        )
+
+        avg = TradeRating.objects.filter(
+            trade__in=completed_trades
+        ).exclude(
+            rated_by=user
+        ).aggregate(avg=Avg('rating'))['avg']
+
+        return round(avg, 1) if avg else None
 
 
 

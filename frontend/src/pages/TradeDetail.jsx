@@ -160,6 +160,15 @@ function TradeDetail() {
       <h2 style={{ marginBottom: "1rem" }}>Trade Details</h2>
       <p>
         <strong>Posted by:</strong> {trade.user}
+        {trade.poster_rating !== null ? (
+          <span style={{ marginLeft: "0.5rem", fontWeight: "normal", color: "#666" }}>
+            (⭐ {trade.poster_rating} / 5)
+          </span>
+        ) : (
+          <span style={{ marginLeft: "0.5rem", fontStyle: "italic", color: "#999" }}>
+            (no ratings yet)
+          </span>
+        )}
       </p>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "2rem", marginTop: "1.5rem" }}>

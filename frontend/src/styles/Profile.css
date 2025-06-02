@@ -1,0 +1,80 @@
+.container {
+  padding: 2rem;
+  background-color: #f4f4f4;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card {
+  background-color: #fff;
+  padding: 2rem 3rem;
+  border-radius: 20px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  font-family: 'Segoe UI', sans-serif;
+  margin-bottom: 3rem;
+}
+
+.title {
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  color: #e60000;
+}
+
+.welcome {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.coinBadge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #fff3cd;
+  border: 2px solid #ffcd39;
+  border-radius: 30px;
+  padding: 0.6rem 1.2rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+  box-shadow: inset 0 2px 4px rgba(255, 205, 57, 0.4);
+}
+
+.coinEmoji {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.coinText {
+  color: #664d03;
+}
+
+.tradeContainer {
+  width: 100%;
+  max-width: 900px;
+}
+
+.tradeTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.coinBox {
+  width: 100px;
+  height: 140px;
+  border-radius: 8px;
+  background-color: #fffbe6;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #d97706;
+  font-weight: bold;
+  font-size: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  text-align: center;
+}

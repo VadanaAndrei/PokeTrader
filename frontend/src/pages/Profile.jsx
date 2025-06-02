@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import api from "../api";
+import "./../styles/Profile.css";
 
 function Profile() {
   const [username, setUsername] = useState("");
   const [coins, setCoins] = useState(0);
+  const [averageRating, setAverageRating] = useState(null);
   const [completedTrades, setCompletedTrades] = useState([]);
+  const [ratedTrades, setRatedTrades] = useState({});
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -12,6 +15,7 @@ function Profile() {
         const res = await api.get("/api/profile/");
         setUsername(res.data.username);
         setCoins(res.data.coins);
+        setAverageRating(res.data.average_rating);
       } catch (err) {
         console.error("Error loading profile:", err);
       }
@@ -26,28 +30,62 @@ function Profile() {
       }
     };
 
+    const fetchRatedTrades = async () => {
+      try {
+        const res = await api.get("/api/trades/my-ratings/");
+        setRatedTrades(res.data);
+      } catch (err) {
+        console.error("Error loading rated trades:", err);
+      }
+    };
+
     fetchProfile();
     fetchCompletedTrades();
+    fetchRatedTrades();
   }, []);
 
   const calculateValue = (items) =>
     items.reduce((sum, item) => sum + item.quantity * (item.market_price || 0), 0);
 
-  return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>👤 Profile</h2>
-        <p style={styles.welcome}>Welcome, <strong>{username}</strong>!</p>
+  const handleRate = async (tradeId, rating) => {
+    try {
+      await api.post("/api/trades/rate/", {
+        trade: tradeId,
+        rating: rating,
+      });
+      setRatedTrades((prev) => ({ ...prev, [tradeId]: rating }));
+    } catch (err) {
+      console.error("Rating failed", err);
+    }
+  };
 
-        <div style={styles.coinBadge}>
-          <span style={styles.coinEmoji}>🪙</span>
-          <span style={styles.coinText}>{coins} PokeCoins</span>
+  return (
+    <div className="container">
+      <div className="card">
+        <h2 className="title">👤 Profile</h2>
+        <p className="welcome">
+          Welcome, <strong>{username}</strong>!
+        </p>
+
+        <div className="coinBadge">
+          <span className="coinEmoji">🪙</span>
+          <span className="coinText">{coins} PokeCoins</span>
         </div>
+
+        {averageRating !== null ? (
+          <p style={{ marginTop: "1rem", fontWeight: "bold", color: "#444" }}>
+            ⭐ Average Rating: {averageRating.toFixed(1)} / 5
+          </p>
+        ) : (
+          <p style={{ marginTop: "1rem", fontWeight: "bold", color: "#888" }}>
+            ⭐ You don’t have any ratings yet.
+          </p>
+        )}
       </div>
 
       {completedTrades.length > 0 && (
-        <div style={styles.tradeContainer}>
-          <h3 style={styles.tradeTitle}>Completed Trades</h3>
+        <div className="tradeContainer">
+          <h3 className="tradeTitle">Completed Trades</h3>
           {completedTrades.map((trade) => {
             const offeredValue = calculateValue(trade.offered_items_snapshot);
             const requestedValue = calculateValue(trade.requested_items_snapshot);
@@ -84,7 +122,7 @@ function Profile() {
                         </div>
                       ))}
                       {trade.offered_coins > 0 && (
-                        <div style={styles.coinBox}>
+                        <div className="coinBox">
                           💰<div>{trade.offered_coins} Coins</div>
                         </div>
                       )}
@@ -105,7 +143,7 @@ function Profile() {
                         </div>
                       ))}
                       {trade.requested_coins > 0 && (
-                        <div style={styles.coinBox}>
+                        <div className="coinBox">
                           💰<div>{trade.requested_coins} Coins</div>
                         </div>
                       )}
@@ -117,6 +155,31 @@ function Profile() {
                   <p><strong>Offered Value:</strong> ${offeredValue.toFixed(2)}</p>
                   <p><strong>Received Value:</strong> ${requestedValue.toFixed(2)}</p>
                 </div>
+
+                {!ratedTrades[trade.id] ? (
+                  <div style={{ marginTop: "1rem" }}>
+                    <p><strong>Rate this trade:</strong></p>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => handleRate(trade.id, star)}
+                        style={{
+                          marginRight: "0.4rem",
+                          padding: "0.4rem 0.8rem",
+                          backgroundColor: "#fdd835",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontWeight: "bold"
+                        }}
+                      >
+                        {star}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ marginTop: "1rem" }}>⭐ You rated this trade: {ratedTrades[trade.id]} / 5</p>
+                )}
               </div>
             );
           })}
@@ -125,79 +188,5 @@ function Profile() {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    padding: "2rem",
-    backgroundColor: "#f4f4f4",
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  },
-  card: {
-    backgroundColor: "#fff",
-    padding: "2rem 3rem",
-    borderRadius: "20px",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.15)",
-    textAlign: "center",
-    maxWidth: "400px",
-    width: "100%",
-    fontFamily: "'Segoe UI', sans-serif",
-    marginBottom: "3rem",
-  },
-  title: {
-    marginBottom: "0.5rem",
-    fontSize: "2rem",
-    color: "#e60000",
-  },
-  welcome: {
-    fontSize: "1.2rem",
-    marginBottom: "1.5rem",
-  },
-  coinBadge: {
-    display: "inline-flex",
-    alignItems: "center",
-    backgroundColor: "#fff3cd",
-    border: "2px solid #ffcd39",
-    borderRadius: "30px",
-    padding: "0.6rem 1.2rem",
-    fontWeight: "bold",
-    fontSize: "1.1rem",
-    boxShadow: "inset 0 2px 4px rgba(255, 205, 57, 0.4)",
-  },
-  coinEmoji: {
-    fontSize: "1.5rem",
-    marginRight: "0.5rem",
-  },
-  coinText: {
-    color: "#664d03",
-  },
-  tradeContainer: {
-    width: "100%",
-    maxWidth: "900px",
-  },
-  tradeTitle: {
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-    marginBottom: "1rem",
-    color: "#333",
-  },
-  coinBox: {
-    width: "100px",
-    height: "140px",
-    borderRadius: "8px",
-    backgroundColor: "#fffbe6",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    color: "#d97706",
-    fontWeight: "bold",
-    fontSize: "1rem",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-    textAlign: "center",
-  },
-};
 
 export default Profile;

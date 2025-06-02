@@ -7,4 +7,6 @@ admin.site.register(Trade)
 admin.site.register(PokemonInfo)
 admin.site.register(PokemonGuessGame)
 admin.site.register(CompletedTrade)
+admin.site.register(TradeRating)
+
 
