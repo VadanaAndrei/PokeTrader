@@ -14,6 +14,9 @@ import random
 import re
 from django.utils import timezone
 from django.db.models import Avg
+from datetime import date
+from rest_framework.decorators import api_view, permission_classes
+from django.utils.timezone import now
 
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -41,7 +44,6 @@ class SetCardsView(APIView):
 
         serializer = PokemonCardSerializer(cards, many=True)
         return Response(serializer.data)
-
 
 class UserCollectionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -92,14 +94,12 @@ class RemoveFromCollectionView(APIView):
         entry.save()
         return Response({"message": "Decreased quantity", "quantity": entry.quantity})
 
-
 class CardSearchView(ListAPIView):
     queryset = PokemonCard.objects.all()
     serializer_class = PokemonCardSerializer
     filter_backends = [SearchFilter]
     search_fields = ["name"]
     permission_classes = [AllowAny]
-
 
 class TradeListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -137,7 +137,6 @@ class TradeListCreateView(ListCreateAPIView):
         output_serializer = TradeSerializer(trade)
         return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
-
 class TradeDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Trade.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -153,7 +152,6 @@ class TradeDetailView(RetrieveUpdateDestroyAPIView):
 
         self.perform_destroy(instance)
         return Response({"message": "Trade deleted and coins returned."}, status=status.HTTP_204_NO_CONTENT)
-
 
 class AcceptTradeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -201,7 +199,6 @@ class AcceptedTradesView(ListAPIView):
             accepted_by=self.request.user
         ).order_by("-created_at")
 
-
 class MessageListCreateView(ListCreateAPIView):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
@@ -219,8 +216,6 @@ class MessageListCreateView(ListCreateAPIView):
         trade_id = self.kwargs["trade_id"]
         serializer.save(sender=request.user, trade_id=trade_id)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
 
 class ConfirmTradeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -301,9 +296,6 @@ class ConfirmTradeView(APIView):
         except Trade.DoesNotExist:
             return Response({"error": "Trade not found"}, status=404)
 
-
-
-
 class TradeConfirmationStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -331,11 +323,23 @@ class StartGuessGameView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if PokemonGuessGame.objects.filter(user=request.user, is_active=True).exists():
+        user = request.user
+        profile = user.userprofile
+        current_time = now()
+
+        midnight_today = current_time.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        if profile.last_guess_game_played and profile.last_guess_game_played >= midnight_today.date():
+            return Response({"message": "You already played today!"}, status=403)
+
+        if PokemonGuessGame.objects.filter(user=user, is_active=True).exists():
             return Response({"message": "You already have an active game."}, status=400)
 
         pokemon = random.choice(PokemonInfo.objects.all())
-        PokemonGuessGame.objects.create(user=request.user, target=pokemon)
+        PokemonGuessGame.objects.create(user=user, target=pokemon)
+
+        profile.last_guess_game_played = current_time
+        profile.save()
 
         print(f"Chosen Pokemon: {pokemon.name}")
 
@@ -543,3 +547,19 @@ class ProfileView(APIView):
         serializer = UserProfileSerializer(profile)
         return Response(serializer.data)
 
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def guess_game_daily_access(request):
+    profile = request.user.userprofile
+    today = date.today()
+
+    if request.method == "GET":
+        already_played = profile.last_guess_game_played == today
+        return Response({"already_played": already_played})
+
+    if profile.last_guess_game_played == today:
+        return Response({"error": "Already played today."}, status=400)
+
+    profile.last_guess_game_played = today
+    profile.save()
+    return Response({"success": "Play registered."})

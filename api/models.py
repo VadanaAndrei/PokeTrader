@@ -128,6 +128,7 @@ class GuessMessage(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     coins = models.IntegerField(default=0)
+    last_guess_game_played = models.DateField(null=True, blank=True)
 
 class CompletedTrade(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="completed_trades_as_poster")

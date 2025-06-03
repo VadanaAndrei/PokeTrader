@@ -39,7 +39,7 @@ function GuessGame() {
 
   const startGame = async () => {
     try {
-      await api.post("/api/start-game/");
+      const res = await api.post("/api/start-game/");
       setMessages([]);
       setStatus("playing");
       setError("");
@@ -130,7 +130,11 @@ function GuessGame() {
           </div>
         )}
 
-        {error && <p style={{ color: "red", fontWeight: "bold" }}>{error}</p>}
+        {error && (
+          <p style={{ color: "red", fontWeight: "bold", textAlign: "center" }}>
+            {error}
+          </p>
+        )}
 
         {status === "playing" && (
           <>

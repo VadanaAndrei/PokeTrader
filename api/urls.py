@@ -27,5 +27,5 @@ urlpatterns = [
     path("trades/rate/", RateTradeView.as_view(), name="rate-trade"),
     path("trades/my-ratings/", MyTradeRatingsView.as_view(), name="my-trade-ratings"),
     path("trades/average-rating/", AverageUserRatingView.as_view(), name="average-user-rating"),
-
+    path("guess-game-access/", guess_game_daily_access),
 ]
