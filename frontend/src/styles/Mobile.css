@@ -1,0 +1,35 @@
+@media (max-width: 768px) {
+  .form-container,
+  .page-container,
+  .section {
+    padding: 1rem !important;
+    width: 90% !important;
+  }
+
+  .form-input,
+  .form-button,
+  input,
+  button {
+    font-size: 1rem !important;
+  }
+
+  h1, h2 {
+    font-size: 1.8rem !important;
+    text-align: center;
+  }
+
+  p {
+    font-size: 1rem !important;
+    text-align: center;
+  }
+
+  .navbar {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .footer {
+    font-size: 0.8rem !important;
+    padding: 1rem !important;
+  }
+}

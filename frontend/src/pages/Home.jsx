@@ -77,7 +77,7 @@ function Home() {
       <div
         style={{
           backgroundColor: "#7FAD70",
-          padding: "4rem 2rem",
+          padding: "1rem 2rem 6rem 2rem",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",

@@ -1,6 +1,6 @@
-import {Link} from "react-router-dom";
-import {useEffect, useState} from "react";
-import {jwtDecode} from "jwt-decode";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 import "./../styles/Navbar.css";
 
 function Navbar() {
@@ -35,34 +35,25 @@ function Navbar() {
 
     return (
         <div className="navbar-wrapper">
+            <div className="navbar-left">
+                {username ? (
+                    <span>
+                        Hello,{" "}
+                        <Link to="/profile" className="username-link">
+                            {username}
+                        </Link>
+                    </span>
+                ) : (
+                    <>
+                        <Link to="/login">Login</Link>
+                        <Link to="/register">Register</Link>
+                    </>
+                )}
+            </div>
+
             <div className="navbar-center-button"></div>
-            <div className="navbar">
-                <div style={{marginRight: "auto", color: "white", display: "flex", gap: "1rem"}}>
-                    {username ? (
-                        <span>
-                            Hello,{" "}
-                            <Link
-                                to="/profile"
-                                style={{
-                                    color: "white",
-                                    textDecoration: "underline",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                {username}
-                            </Link>
-                        </span>
-                    ) : (
-                        <>
-                            <Link to="/login" style={{color: "white", textDecoration: "none"}}>
-                                Login
-                            </Link>
-                            <Link to="/register" style={{color: "white", textDecoration: "none"}}>
-                                Register
-                            </Link>
-                        </>
-                    )}
-                </div>
+
+            <div className="navbar-right">
                 <Link to="/">Home</Link>
                 <Link to="/sets">Cards</Link>
                 <Link to="/collection">Collection</Link>

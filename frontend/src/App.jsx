@@ -22,6 +22,9 @@ import GuessGame from "./pages/GuessGame.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import Footer from "./components/Footer.jsx";
+import About from "./pages/About.jsx";
+import "./styles/Mobile.css";
 
 function Logout() {
     useEffect(() => {
@@ -54,6 +57,7 @@ function App() {
                 <Route path="/register" element={<RegisterAndLogout/>}/>
                 <Route path="/forgot-password" element={<ForgotPassword/>}/>
                 <Route path="/reset-password" element={<ResetPassword/>}/>
+                <Route path="/about" element={<About/>}/>
 
                 <Route
                     path="/sets"
@@ -153,6 +157,7 @@ function App() {
                 />
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
+        <Footer/>
         </BrowserRouter>
     );
 }
