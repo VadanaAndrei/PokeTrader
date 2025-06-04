@@ -563,3 +563,23 @@ def guess_game_daily_access(request):
     profile.last_guess_game_played = today
     profile.save()
     return Response({"success": "Play registered."})
+
+class PasswordResetView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"detail": "Password reset email sent."})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"detail": "Password reset successful."})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

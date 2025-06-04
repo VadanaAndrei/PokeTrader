@@ -2,17 +2,28 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.db.models import Sum
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import *
 from django.db.models import Avg
+from django.core.mail import send_mail
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.conf import settings
 
 class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all(), message="This email is already in use.")]
+    )
+    username = serializers.CharField(
+        validators=[UniqueValidator(queryset=User.objects.all(), message="This username is already taken.")]
+    )
+
     class Meta:
         model = User
         fields = ["id", "username", "email", "password"]
         extra_kwargs = {
             "password": {"write_only": True},
-            "email": {"required": True},
         }
 
     def create(self, validated_data):
@@ -261,6 +272,50 @@ class UserProfileSerializer(serializers.ModelSerializer):
         ).aggregate(avg=Avg('rating'))['avg']
 
         return round(avg, 1) if avg else None
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("No user with this email.")
+        return value
+
+    def save(self):
+        email = self.validated_data["email"]
+        user = User.objects.get(email=email)
+        token = RefreshToken.for_user(user).access_token
+        frontend_url = "http://localhost:5173/reset-password"
+        reset_link = f"{frontend_url}?token={str(token)}"
+
+        send_mail(
+            subject="Password Reset Request",
+            message=f"Click the link to reset your password: {reset_link}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+        )
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        from rest_framework_simplejwt.tokens import AccessToken
+        try:
+            token = AccessToken(attrs["token"])
+            user_id = token["user_id"]
+            user = User.objects.get(id=user_id)
+        except Exception:
+            raise serializers.ValidationError("Invalid or expired token.")
+        attrs["user"] = user
+        return attrs
+
+    def save(self):
+        user = self.validated_data["user"]
+        password = self.validated_data["password"]
+        user.set_password(password)
+        user.save()
 
 
 

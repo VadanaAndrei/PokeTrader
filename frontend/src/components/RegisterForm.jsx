@@ -1,5 +1,5 @@
-import {useState} from "react";
-import {useNavigate} from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/Form.css";
 
@@ -8,6 +8,7 @@ function RegisterForm() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -15,11 +16,13 @@ function RegisterForm() {
         e.preventDefault();
 
         if (password !== confirmPassword) {
-            alert("Passwords do not match!");
+            setErrors({ confirmPassword: "Passwords do not match." });
             return;
         }
 
         setLoading(true);
+        setErrors({});
+
         try {
             await api.post("/api/user/register/", {
                 username,
@@ -28,7 +31,11 @@ function RegisterForm() {
             });
             navigate("/login");
         } catch (error) {
-            alert("Registration failed.");
+            if (error.response && error.response.data) {
+                setErrors(error.response.data);
+            } else {
+                setErrors({ general: "Registration failed. Please try again." });
+            }
             console.error(error);
         } finally {
             setLoading(false);
@@ -39,21 +46,26 @@ function RegisterForm() {
         <form onSubmit={handleSubmit} className="form-container">
             <style>
                 {`
-          .form-button {
-            background-color: #e60012;
-            color: white;
-            border: none;
-            padding: 0.5rem 1.2rem;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-          }
-          .form-button:hover {
-            background-color: #cc000f;
-          }
-        `}
+                .form-button {
+                    background-color: #e60012;
+                    color: white;
+                    border: none;
+                    padding: 0.5rem 1.2rem;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    transition: background-color 0.2s ease;
+                }
+                .form-button:hover {
+                    background-color: #cc000f;
+                }
+                .error-message {
+                    color: red;
+                    font-size: 0.85rem;
+                    margin-bottom: 0.5rem;
+                }
+                `}
             </style>
 
             <h1>Register</h1>
@@ -66,6 +78,8 @@ function RegisterForm() {
                 placeholder="Username"
                 required
             />
+            {errors.username && <div className="error-message">{errors.username[0]}</div>}
+
             <input
                 className="form-input"
                 type="email"
@@ -74,6 +88,8 @@ function RegisterForm() {
                 placeholder="Email"
                 required
             />
+            {errors.email && <div className="error-message">{errors.email[0]}</div>}
+
             <input
                 className="form-input"
                 type="password"
@@ -82,6 +98,8 @@ function RegisterForm() {
                 placeholder="Password"
                 required
             />
+            {errors.password && <div className="error-message">{errors.password[0]}</div>}
+
             <input
                 className="form-input"
                 type="password"
@@ -90,14 +108,19 @@ function RegisterForm() {
                 placeholder="Confirm Password"
                 required
             />
+            {errors.confirmPassword && (
+                <div className="error-message">{errors.confirmPassword}</div>
+            )}
 
-            <button className="form-button" type="submit">
+            {errors.general && <div className="error-message">{errors.general}</div>}
+
+            <button className="form-button" type="submit" disabled={loading}>
                 {loading ? "Registering..." : "Register"}
             </button>
 
-            <p style={{marginTop: "1rem", fontFamily: "Tektur, sans-serif"}}>
+            <p style={{ marginTop: "1rem", fontFamily: "Tektur, sans-serif" }}>
                 Already have an account?{" "}
-                <a href="/login" style={{color: "#FF0000", textDecoration: "underline"}}>
+                <a href="/login" style={{ color: "#FF0000", textDecoration: "underline" }}>
                     Login here!
                 </a>
             </p>

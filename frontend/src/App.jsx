@@ -20,6 +20,8 @@ import Profile from "./pages/Profile.jsx";
 import TradeChat from "./pages/TradeChat.jsx";
 import GuessGame from "./pages/GuessGame.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 
 function Logout() {
     useEffect(() => {
@@ -50,6 +52,9 @@ function App() {
                 <Route path="/login" element={<LoginAndLogout/>}/>
                 <Route path="/logout" element={<Logout/>}/>
                 <Route path="/register" element={<RegisterAndLogout/>}/>
+                <Route path="/forgot-password" element={<ForgotPassword/>}/>
+                <Route path="/reset-password" element={<ResetPassword/>}/>
+
                 <Route
                     path="/sets"
                     element={

@@ -28,4 +28,6 @@ urlpatterns = [
     path("trades/my-ratings/", MyTradeRatingsView.as_view(), name="my-trade-ratings"),
     path("trades/average-rating/", AverageUserRatingView.as_view(), name="average-user-rating"),
     path("guess-game-access/", guess_game_daily_access),
+    path("password-reset/", PasswordResetView.as_view(), name="password-reset"),
+    path("password-reset-confirm/", PasswordResetConfirmView.as_view(), name="password-reset-confirm"),
 ]

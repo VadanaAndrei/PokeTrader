@@ -35,7 +35,6 @@ class UserCard(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.card.name} x{self.quantity}"
 
-
 class Trade(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trades")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -46,7 +45,6 @@ class Trade(models.Model):
 
     def __str__(self):
         return f"Trade by {self.user.username}"
-
 
 class TradeOfferedCard(models.Model):
     trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name="offered_items")
@@ -60,7 +58,6 @@ class TradeOfferedCard(models.Model):
     def __str__(self):
         return f"{self.quantity}x {self.user_card.card.name} from {self.user_card.user.username}"
 
-
 class TradeRequestedCard(models.Model):
     trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name="requested_items")
     card = models.ForeignKey(PokemonCard, on_delete=models.CASCADE)
@@ -68,7 +65,6 @@ class TradeRequestedCard(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.card.name}"
-
 
 class Message(models.Model):
     trade = models.ForeignKey('Trade', on_delete=models.CASCADE, related_name='messages')
@@ -79,7 +75,6 @@ class Message(models.Model):
     def __str__(self):
         return f"{self.sender.username}: {self.text[:30]}"
 
-
 class TradeConfirmation(models.Model):
     trade = models.OneToOneField(Trade, on_delete=models.CASCADE, related_name="confirmation")
     poster_confirmed = models.BooleanField(default=False)
@@ -87,7 +82,6 @@ class TradeConfirmation(models.Model):
 
     def __str__(self):
         return f"Confirmation for trade {self.trade.id}"
-
 
 class PokemonInfo(models.Model):
     name = models.CharField(max_length=100)
@@ -106,7 +100,6 @@ class PokemonInfo(models.Model):
     def __str__(self):
         return self.name
 
-
 class PokemonGuessGame(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     target = models.ForeignKey("PokemonInfo", on_delete=models.CASCADE)
@@ -116,14 +109,12 @@ class PokemonGuessGame(models.Model):
     def __str__(self):
         return f"{self.user.username} is guessing {self.target.name}"
 
-
 class GuessMessage(models.Model):
     game = models.ForeignKey(PokemonGuessGame, on_delete=models.CASCADE, related_name="messages")
     is_guess = models.BooleanField(default=False)
     text = models.TextField()
     answer = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
