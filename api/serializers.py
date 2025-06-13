@@ -295,7 +295,6 @@ class PasswordResetSerializer(serializers.Serializer):
             recipient_list=[email],
         )
 
-
 class PasswordResetConfirmSerializer(serializers.Serializer):
     token = serializers.CharField()
     password = serializers.CharField(write_only=True)
